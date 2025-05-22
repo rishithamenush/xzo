@@ -5,6 +5,7 @@ import '../../view_layer.dart';
 import 'members_screen.dart';
 import 'trainers_screen.dart';
 import 'classes_screen.dart';
+import 'attendance_screen.dart';
 
 //Admin homepage provides actions,data view.
 class AdminHomePage extends StatefulWidget {
@@ -147,6 +148,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
                           } else if (action.label == 'Classes') {
                             Navigator.of(context).push(
                               MaterialPageRoute(builder: (_) => const ClassesScreen()),
+                            );
+                          } else if (action.label == 'Attendance') {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const AttendanceScreen()),
                             );
                           } else {
                             Navigator.of(context).pushNamed(action.route);
