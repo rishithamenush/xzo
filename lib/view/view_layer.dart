@@ -70,3 +70,6 @@ export 'package:turathi/view/screens/cars_screen.dart';
 export 'package:turathi/view/screens/admin/admin_cars_screen.dart';
 export 'package:turathi/view/widgets/car_card.dart';
 export 'package:turathi/view/screens/car_details_screen.dart';
+export 'package:turathi/view/screens/progress_screen.dart';
+export 'package:turathi/view/screens/schedule_screen.dart';
+export 'package:turathi/view/screens/shop_screen.dart';

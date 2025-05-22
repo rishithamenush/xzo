@@ -50,657 +50,287 @@ class _HomeScreenState extends State<HomeScreen> {
     PlaceProvider placeProvider = Provider.of<PlaceProvider>(context);
     NotificationProvider notificationProvider = Provider.of<NotificationProvider>(context);
 
+    // Mock user data
+    final String userName = "Mad";
+    final String userAvatar = "assets/images/img_png/user_avatar.png"; // Replace with your avatar asset
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60.0),
-        child: AppBar(
-          automaticallyImplyLeading: false,
-          elevation: 0,
-          backgroundColor: TourismColors.background,
-          title: Row(
-            children: [
-              const Text(
-                'Turathi',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: TourismColors.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  height: 35,
-                  decoration: BoxDecoration(
-                    color: TourismColors.surface,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 1,
-                        horizontal: 20,
-                      ),
-                      hintText: 'Where to?',
-                      hintStyle: TextStyle(color: TourismColors.textSecondary),
-                      border: InputBorder.none,
-                      suffixIcon: const Icon(Icons.search, color: TourismColors.primary),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            FutureBuilder(
-              future: notificationProvider.notificationList,
-              builder: (context, snapshot) {
-                var data = snapshot.data;
-                if (data == null) {
-                  return IconButton(
-                    icon: const Icon(Icons.notifications_none_outlined, color: TourismColors.textSecondary),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(notificationPage);
-                    },
-                  );
-                }
-                notificationList = data;
-                bool hasUnread = notificationList!.notifications.any((element) => element.isRead == false);
-                return IconButton(
-                  icon: Icon(
-                    hasUnread ? Icons.notifications_active : Icons.notifications_none_outlined,
-                    color: hasUnread ? TourismColors.secondary : TourismColors.textSecondary,
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(notificationPage);
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: Colors.black,
       body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Curved image header with overlay
-            Stack(
+            // Greeting and avatar
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ClipPath(
-                  clipper: CurvedHeaderClipper(),
-                  child: Container(
-                    height: 200,
-                    width: double.infinity,
-                    child: Image.asset(
-                      'assets/images/img_png/img_1.png',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                // Gradient overlay at the bottom for text readability
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 190,
-                  child: ClipPath(
-                    clipper: CurvedHeaderClipper(),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [
-                            Colors.black.withOpacity(0.55),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Overlay greeting and search bar
-                Positioned(
-                  left: 24,
-                  right: 24,
-                  top: 40,
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _greeting,
+                        "Hi, $userName",
                         style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
                           color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(0, 2),
-                              blurRadius: 8,
-                              color: Colors.black54, // stronger shadow
-                            ),
-                          ],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 28,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 4),
                       Text(
-                        'Ready for your next adventure?',
+                        "Let's check your activity",
                         style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(0, 2),
-                              blurRadius: 8,
-                              color: Colors.black54, // stronger shadow
-                            ),
-                          ],
+                          color: Colors.white70,
+                          fontSize: 16,
                         ),
                       ),
                     ],
                   ),
                 ),
+                CircleAvatar(
+                  radius: 32,
+                  backgroundImage: AssetImage(userAvatar),
+                ),
               ],
             ),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Featured Destinations',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 0, 0, 0),
-                  ),
-                ),
+            SizedBox(height: 24),
+
+            // Today's Progress Card
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Color(0xFF240006),
+                borderRadius: BorderRadius.circular(18),
               ),
-            ),
-            // Places from Firebase
-            SizedBox(
-              height: 230,
-              child: FutureBuilder<PlaceList>(
-                future: placeProvider.placeList,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data!.places.isEmpty) {
-                    return const Center(child: Text('No Places Yet'));
-                  }
-                  final places = snapshot.data!.places;
-                  return LayoutBuilder(
-                    builder: (context, constraints) {
-                      double cardWidth = constraints.maxWidth * 0.7;
-                      double imageHeight = 130;
-                      return ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: places.length,
-                        shrinkWrap: true,
-                        physics: const ClampingScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          final place = places[index];
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).pushNamed(placeDetailsRoute, arguments: place);
-                            },
-                            child: Card(
-                              elevation: 5,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              margin: const EdgeInsets.symmetric(horizontal: 10),
-                              color: Colors.white,
-                              child: SizedBox(
-                                width: cardWidth,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: place.images != null && place.images!.isNotEmpty
-                                          ? Image.network(
-                                              place.images![0],
-                                              fit: BoxFit.cover,
-                                              height: imageHeight,
-                                              width: cardWidth,
-                                            )
-                                          : Container(
-                                              height: imageHeight,
-                                              width: cardWidth,
-                                              color: Colors.grey[300],
-                                              child: const Icon(Icons.image, size: 60, color: Colors.white),
-                                            ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                      child: Text(
-                                        place.title ?? '',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                      child: Text(
-                                        place.address ?? '',
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.star, color: Colors.amber, size: 16),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            place.like != null ? place.like.toString() : '0',
-                                            style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 25),
-            _buildServiceIcons(context),
-            const SizedBox(height: 25),
-            // Promotional banners (static images, you can update as needed)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8.0),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[100],
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            blurRadius: 5,
-                            spreadRadius: 2,
-                          ),
-                        ],
+                  // Progress row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Today's Progress", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                            SizedBox(height: 4),
+                            Text("5 of 7 daily goals completed", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                          ],
+                        ),
                       ),
-                      child: Stack(
+                      Stack(
+                        alignment: Alignment.center,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
-                              'assets/images/img_png/s2.png',
-                              height: 150,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
+                          SizedBox(
+                            width: 54,
+                            height: 54,
+                            child: CircularProgressIndicator(
+                              value: 0.7,
+                              strokeWidth: 6,
+                              backgroundColor: Colors.white12,
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFB71C1C)),
                             ),
                           ),
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.black.withOpacity(0.5),
-                                    Colors.transparent,
-                                  ],
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const Positioned(
-                            bottom: 65,
-                            left: 16,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '30% OFF',
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Text(
-                                  'Luxury Hotels',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 16,
-                            left: 16,
-                            child: SizedBox(
-                              width: 120,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  final url = Uri.parse('https://booking.kayak.com/');
-                                  try {
-                                    await launchUrl(url, mode: LaunchMode.externalApplication);
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Could not open browser.')),
-                                    );
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  foregroundColor: Colors.blue,
-                                  backgroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: const Text('Book Now'),
-                              ),
-                            ),
-                          ),
+                          Text("70%", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                         ],
                       ),
-                    ),
+                    ],
                   ),
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 8.0),
-                      decoration: BoxDecoration(
-                        color: Colors.green[100],
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            blurRadius: 5,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
-                              'assets/images/img_png/s1.jpg',
-                              height: 150,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.black.withOpacity(0.5),
-                                    Colors.transparent,
-                                  ],
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const Positioned(
-                            bottom: 65,
-                            left: 16,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '25% OFF',
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Text(
-                                  'Adventure Tours',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 16,
-                            left: 16,
-                            child: SizedBox(
-                              width: 120,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  final url = Uri.parse('https://booking.kayak.com/');
-                                  try {
-                                    await launchUrl(url, mode: LaunchMode.externalApplication);
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Could not open browser.')),
-                                    );
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  foregroundColor: Colors.blue,
-                                  backgroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: const Text('Book Now'),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  SizedBox(height: 18),
+                  // Stats row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _progressStat(Icons.directions_walk, "Steps", "8,245 / 10,000"),
+                      _progressStat(Icons.local_fire_department, "Calories", "450 kcal"),
+                      _progressStat(Icons.access_time, "Active", "45 mins"),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 5),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Recommended Experiences',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 0, 0, 0),
-                  ),
-                ),
-              ),
-            ),
-            // Events from Firebase
-            SizedBox(
-              height: 230,
-              child: FutureBuilder<EventList>(
-                future: eventProvider.eventList,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data!.events.isEmpty) {
-                    return const Center(child: Text('No Events Yet'));
-                  }
-                  final events = snapshot.data!.events;
-                  return ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: events.length,
-                    itemBuilder: (context, index) {
-                      final event = events[index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pushNamed(eventDetailsRoute, arguments: event);
-                        },
-                        child: Card(
-                          elevation: 5,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          margin: const EdgeInsets.symmetric(horizontal: 10),
-                          color: Colors.white,
-                          child: SizedBox(
-                            width: 280,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: event.images != null && event.images!.isNotEmpty
-                                      ? Image.network(
-                                          event.images![0],
-                                          fit: BoxFit.cover,
-                                          height: 130,
-                                          width: 280,
-                                        )
-                                      : Container(
-                                          height: 130,
-                                          width: 280,
-                                          color: Colors.grey[300],
-                                          child: const Icon(Icons.image, size: 60, color: Colors.white),
-                                        ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                  child: Text(
-                                    event.name ?? '',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                  child: Text(
-                                    event.address ?? '',
-                                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                  child: Text(
-                                    event.description ?? '',
-                                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 15),
-          ],
-        ),
-      ),
-    );
-  }
+            SizedBox(height: 18),
 
-  Widget _buildServiceIcons(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _serviceIcon(context, Icons.location_on, 'Places', Colors.blue, () => Navigator.of(context).pushNamed(placesAdminRoute)),
-            _serviceIcon(context, Icons.hotel, 'Hotels', Colors.blue, () async {
-              final url = Uri.parse('https://booking.kayak.com/');
-              try {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Could not open browser.')),
-                );
-              }
-            }),
-            _serviceIcon(context, Icons.flight_takeoff, 'Flights', Colors.blue, () async {
-              final url = Uri.parse('https://www.srilankan.com/en_uk/go?redirect=1#ibe');
-              try {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Could not open browser.')),
-                );
-              }
-            }),
-            _serviceIcon(context, Icons.car_rental, 'Rentals', Colors.blue, () {
-              Navigator.of(context).pushNamed(carsRoute);
-            }),
-            _serviceIcon(context, Icons.person, 'Guides', Colors.blue, () {
-              Navigator.of(context).pushNamed(guidesRoute);
-            }),
-            _serviceIcon(context, Icons.map, 'Map', Colors.blue, () async {
-              final url = Uri.parse('https://www.google.com/maps');
-              try {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Could not open browser.')),
-                );
-              }
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _serviceIcon(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-        child: Column(
-          children: [
+            // Gym Capacity Card
             Container(
-              width: 60,
-              height: 60,
+              width: double.infinity,
+              padding: EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(50),
+                color: Color(0xFF240006),
+                borderRadius: BorderRadius.circular(18),
               ),
-              child: Icon(icon, color: color, size: 35),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text("Gym Capacity", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      Spacer(),
+                      Text("65%", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: 0.65,
+                      minHeight: 8,
+                      backgroundColor: Colors.white12,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text("Best time to visit now", style: TextStyle(color: Colors.green, fontSize: 13)),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: TourismColors.textPrimary),
+            SizedBox(height: 18),
+
+            // Top Performers
+            Text("This Week's Top Performers", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            SizedBox(height: 12),
+            _topPerformer(1, "Sarah Kim", "assets/images/img_png/sarah.png", 3240),
+            _topPerformer(2, "Mike Chen", "assets/images/img_png/mike.png", 2980),
+            _topPerformer(3, "Lisa Wang", "assets/images/img_png/lisa.png", 2540),
+            SizedBox(height: 18),
+
+            // 2x2 Grid of Action Buttons
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Color(0xFF240006),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                mainAxisSpacing: 18,
+                crossAxisSpacing: 18,
+                physics: NeverScrollableScrollPhysics(),
+                childAspectRatio: 1.7,
+                children: [
+                  _actionButton(Icons.fitness_center, "Start Workout"),
+                  _actionButton(Icons.event_available, "Attendance"),
+                  _actionButton(Icons.restaurant_menu, "DietPlans"),
+                  _actionButton(Icons.emoji_events, "Leaderboard"),
+                ],
+              ),
             ),
+            SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _progressStat(IconData icon, String label, String value) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.white, size: 28),
+          SizedBox(height: 6),
+          Text(label, style: TextStyle(color: Colors.white70, fontSize: 13)),
+          SizedBox(height: 2),
+          Text(value, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+        ],
+      ),
+    );
+  }
+
+  Widget _topPerformer(int rank, String name, String avatar, int points) {
+    Color medalColor;
+    switch (rank) {
+      case 1:
+        medalColor = Colors.amber;
+        break;
+      case 2:
+        medalColor = Colors.grey;
+        break;
+      case 3:
+        medalColor = Colors.brown;
+        break;
+      default:
+        medalColor = Colors.white;
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3.0),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundImage: AssetImage(avatar),
+          ),
+          SizedBox(width: 10),
+          Text(
+            "$rank.",
+            style: TextStyle(
+              color: medalColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              name,
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Text(
+            "$points pts",
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionButton(IconData icon, String label) {
+    String asset;
+    Color cardColor;
+    switch (label) {
+      case "Start Workout":
+        asset = "assets/images/img_png/workout.png";
+        cardColor = Color(0xFF3A0D1F); // deep maroon
+        break;
+      case "Attendance":
+        asset = "assets/images/img_png/iconattendance.png";
+        cardColor = Color(0xFF3A0D1F); // dark brown
+        break;
+      case "DietPlan":
+        asset = "assets/images/img_png/diet.png";
+        cardColor = Color(0xFF3A0D1F); // dark red
+        break;
+      case "Leaderboard":
+        asset = "assets/images/img_png/achivement.png";
+        cardColor = Color(0xFF3A0D1F); // dark purple
+        break;
+      default:
+        asset = "assets/images/img_png/icondiet.png";
+        cardColor = Color(0xFF3A0D1F);
+    }
+    return ElevatedButton(
+      onPressed: () {},
+      style: ElevatedButton.styleFrom(
+        backgroundColor: cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        elevation: 0,
+        padding: EdgeInsets.symmetric(vertical: 12),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            asset,
+            width: 32,
+            height: 32,
+          ),
+          SizedBox(height: 8),
+          Text(label, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+        ],
       ),
     );
   }

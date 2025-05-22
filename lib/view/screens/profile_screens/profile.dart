@@ -15,250 +15,167 @@ class _ProfileScreen extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: CustomScrollView(
-        slivers: [
-          // Custom App Bar with Profile Header
-          SliverAppBar(
-            expandedHeight: 280,
-            pinned: true,
-            backgroundColor: Colors.transparent,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Avatar, Name, Badge, Edit
+              SizedBox(height: 16),
+              Center(
+                child: CircleAvatar(
+                  radius: 48,
+                  backgroundImage: AssetImage('assets/images/img_png/splash.jpg'),
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                (sharedUser.name != null && sharedUser.name!.trim().isNotEmpty) ? sharedUser.name! : 'User',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                ),
+              ),
+              SizedBox(height: 8),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Color(0xFF7A0019),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  'Premium Member',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                ),
+              ),
+              SizedBox(height: 8),
+              GestureDetector(
+                onTap: () {},
+                child: Text(
+                  'Edit Profile',
+                  style: TextStyle(color: Colors.blue[300], fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
+              SizedBox(height: 24),
+              // Info Cards
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Background Image with Gradient
-                  ShaderMask(
-                    shaderCallback: (rect) {
-                      return LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Colors.black, Colors.transparent],
-                      ).createShader(rect);
-                    },
-                    blendMode: BlendMode.darken,
-                    child: Image.asset(
-                      'assets/images/img_png/splash.jpg',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  // Profile Content
-                  Positioned(
-                    bottom: 20,
-                    left: 20,
-                    right: 20,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Profile Avatar
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 8,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: CircleAvatar(
-                            backgroundColor: Colors.white,
-                            child: Icon(
-                              Icons.person,
-                              size: 40,
-                              color: ThemeManager.primary,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        // Welcome Text
-                        Text(
-                          "Hi ${sharedUser.name}".toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 24,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: ThemeManager.fontFamily,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(2, 2),
-                                blurRadius: 4,
-                                color: Colors.black.withOpacity(0.5),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Welcome to SriWay",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white.withOpacity(0.9),
-                            fontFamily: ThemeManager.fontFamily,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(1, 1),
-                                blurRadius: 2,
-                                color: Colors.black.withOpacity(0.5),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _infoCard('Age', '32 years'),
+                  _infoCard('Height', "5'11\" (180 cm)"),
                 ],
               ),
-            ),
+              SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _infoCard('Weight', '175 lbs (79.4 kg)'),
+                  _infoCard('BMI', '24.3 (Healthy)'),
+                ],
+              ),
+              SizedBox(height: 24),
+              // Fitness Statistics
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Fitness Statistics', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+              ),
+              SizedBox(height: 12),
+              _statBar('Body Fat', 0.18, '18%'),
+              SizedBox(height: 12),
+              _statBar('Muscle Mass', 0.42, '42%'),
+              SizedBox(height: 12),
+              _statBar('Water', 0.65, '65%'),
+              SizedBox(height: 24),
+              // Body Measurements
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Body Measurements', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+              ),
+              SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _infoCard('Chest', '42 inches'),
+                  _infoCard('Waist', '34 inches'),
+                ],
+              ),
+              SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _infoCard('Arms', '15 inches'),
+                  _infoCard('Legs', '22 inches'),
+                ],
+              ),
+              SizedBox(height: 24),
+              // Recent Activity
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Recent Activity', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+              ),
+              SizedBox(height: 12),
+              _activityTile(Icons.fitness_center, 'Upper Body Workout', 'Today', '45 min', '320 cal'),
+              SizedBox(height: 10),
+              _activityTile(Icons.directions_run, 'Cardio Session', 'Yesterday', '30 min', '280 cal'),
+              SizedBox(height: 10),
+              _activityTile(Icons.favorite, 'HIIT Training', '2 days ago', '25 min', '240 cal'),
+              SizedBox(height: 24),
+            ],
           ),
+        ),
+      ),
+    );
+  }
 
-          // Profile Options
-          SliverToBoxAdapter(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.grey[50]!,
-                    Colors.grey[100]!,
-                  ],
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    // Personal Details Card
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFF1A237E), // Deep Blue
-                              Color(0xFF283593), // Indigo
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildProfileOption(
-                              icon: Icons.person_outline,
-                              title: 'Personal Details',
-                              onTap: () => Navigator.of(context).pushNamed(personalDetilsScreen),
-                            ),
-                            Divider(height: 1, color: Colors.white.withOpacity(0.2)),
-                            _buildProfileOption(
-                              icon: Icons.edit_note,
-                              title: 'Change Info',
-                              onTap: () => Navigator.of(context).pushNamed(changeInfo),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 16),
+  Widget _infoCard(String title, String value) {
+    return Expanded(
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 4),
+        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Color(0xFF181818),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+            SizedBox(height: 6),
+            Text(value, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+          ],
+        ),
+      ),
+    );
+  }
 
-                    // Places and Expert Card
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white,
-                              Color(0xFFE8EAF6), // Light Indigo
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildProfileOption(
-                              icon: Icons.place_outlined,
-                              title: 'View Added Places',
-                              iconColor: Color(0xFF1A237E), // Deep Blue
-                              textColor: Color(0xFF1A237E), // Deep Blue
-                              onTap: () => Navigator.of(context).pushNamed(addedPlacesRoute),
-                            ),
-                            Divider(height: 1, color: Colors.grey[300]),
-                            _buildProfileOption(
-                              icon: Icons.star_outline,
-                              title: 'Become an Expert',
-                              iconColor: Color(0xFF1A237E), // Deep Blue
-                              textColor: Color(0xFF1A237E), // Deep Blue
-                              onTap: () => Navigator.of(context).pushNamed(requestToBeExpertRoute),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-
-                    // About and Sign Out Card
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white,
-                              Color(0xFFE8EAF6), // Light Indigo
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildProfileOption(
-                              icon: Icons.info_outline,
-                              title: 'About Us',
-                              iconColor: Color(0xFF1A237E), // Deep Blue
-                              textColor: Color(0xFF1A237E), // Deep Blue
-                              onTap: () => Navigator.of(context).pushNamed(aboutUsScreen),
-                            ),
-                            Divider(height: 1, color: Colors.grey[300]),
-                            _buildProfileOption(
-                              icon: Icons.logout,
-                              title: 'Sign Out',
-                              iconColor: Color(0xFFD32F2F), // Red
-                              textColor: Color(0xFFD32F2F), // Red
-                              onTap: () async {
-                                await userService.signOut();
-                                Navigator.of(context).pushReplacementNamed(signIn);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+  Widget _statBar(String label, double value, String valueLabel) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+      decoration: BoxDecoration(
+        color: Color(0xFF181818),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+              Text(valueLabel, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: value,
+              minHeight: 7,
+              backgroundColor: Colors.grey[800],
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7A0019)),
             ),
           ),
         ],
@@ -266,43 +183,43 @@ class _ProfileScreen extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileOption({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    Color? iconColor,
-    Color? textColor,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(15),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: iconColor ?? Colors.white,
+  Widget _activityTile(IconData icon, String title, String day, String duration, String cal) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+      decoration: BoxDecoration(
+        color: Color(0xFF181818),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Color(0xFF7A0019),
+              shape: BoxShape.circle,
             ),
-            SizedBox(width: 16),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: textColor ?? Colors.white,
-                fontFamily: ThemeManager.fontFamily,
-              ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(day, style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+                    SizedBox(width: 12),
+                    Text(duration, style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+                    SizedBox(width: 12),
+                    Text(cal, style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+                  ],
+                ),
+              ],
             ),
-            Spacer(),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: textColor?.withOpacity(0.5) ?? Colors.white.withOpacity(0.5),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
