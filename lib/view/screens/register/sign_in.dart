@@ -94,14 +94,14 @@ class _LogInState extends State<LogIn> {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      // Registration Number Field
+                      // Email Field (changed from Registration Number)
                       TextFormField(
                         controller: textController.controllerEmail,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Enter Registration Number',
+                          hintText: 'Enter Email Address',
                           hintStyle: const TextStyle(color: Colors.white70),
-                          prefixIcon: const Icon(Icons.confirmation_number, color: Colors.white),
+                          prefixIcon: const Icon(Icons.email, color: Colors.white),
                           filled: true,
                           fillColor: Colors.transparent,
                           enabledBorder: OutlineInputBorder(
@@ -119,7 +119,10 @@ class _LogInState extends State<LogIn> {
                         ),
                         validator: (value) {
                           if (value!.isEmpty) {
-                            return "Enter Registration Number";
+                            return "Enter Email Address";
+                          }
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                            return "Enter a valid email address";
                           }
                           return null;
                         },
@@ -231,7 +234,59 @@ class _LogInState extends State<LogIn> {
                       const SizedBox(height: 5),
                       // Forgot Password
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          // Show dialog to enter email for password reset
+                          final emailController = TextEditingController();
+                          final result = await showDialog<String>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Reset Password'),
+                              content: TextField(
+                                controller: emailController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Enter your email address',
+                                  labelText: 'Email',
+                                ),
+                                keyboardType: TextInputType.emailAddress,
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, emailController.text),
+                                  child: const Text('Send Reset Link'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (result != null && result.isNotEmpty) {
+                            try {
+                              final gymService = GymService();
+                              final resetResult = await gymService.resetPassword(result);
+                              
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(resetResult),
+                                    backgroundColor: resetResult.contains('sent') ? Colors.green : Colors.red,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error sending reset email: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          }
+                        },
                         child: const Text(
                           'Forgot password?',
                           style: TextStyle(

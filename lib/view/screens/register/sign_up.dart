@@ -137,6 +137,24 @@ class _SingUpState extends State<SingUp> {
                       ),
                       const SizedBox(height: 16),
 
+                      // Email Field
+                      _buildTextField(
+                        controller: signUpController.email,
+                        label: 'Email Address',
+                        icon: Icons.email,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                            return 'Enter a valid email address';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
                       // Name Field
                       _buildTextField(
                         controller: signUpController.firstName,
@@ -260,7 +278,7 @@ class _SingUpState extends State<SingUp> {
                                 
                                 final user = UserModel(
                                   name: signUpController.firstName.text,
-                                  email: signUpController.registrationNumber.text + '@domain.com',
+                                  email: signUpController.email.text,
                                   phone: signUpController.phone.text,
                                   longitude: p?.longitude,
                                   latitude: p?.latitude,

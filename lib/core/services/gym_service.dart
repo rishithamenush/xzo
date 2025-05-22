@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/member_model.dart';
 import '../models/trainer_model.dart';
 import '../models/class_model.dart';
@@ -9,15 +10,23 @@ import 'dart:developer';
 
 class GymService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Members
-  Future<void> addMember(MemberModel member) async {
+  Future<String> addMember(MemberModel member, String password) async {
     try {
       log('Starting addMember()...');
       
+      // First create the Firebase Auth user with email and password
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: member.email!,
+        password: password
+      );
+      log('Created Firebase Auth user: ${userCredential.user?.uid}');
+
       // Convert MemberModel to user data
       final userData = {
-        'id': member.id,
+        'id': userCredential.user!.uid, // Use the Firebase Auth UID
         'name': member.name,
         'email': member.email,
         'phone': member.phone,
@@ -33,19 +42,89 @@ class GymService {
       
       log('User data to add: $userData');
       
-      final doc = await _firestore.collection('users').add(userData);
-      log('Created new user document with ID: ${doc.id}');
+      // Add user data to Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set(userData);
+      log('Created new user document with ID: ${userCredential.user!.uid}');
       
-      await doc.update({'id': doc.id});
-      log('Updated document with ID field');
-      
-      log('Successfully added member: ${member.name} (ID: ${doc.id})');
+      log('Successfully added member: ${member.name} (ID: ${userCredential.user!.uid})');
+      return 'Success';
+    } on FirebaseAuthException catch (e) {
+      log('Firebase Auth Error: ${e.code} - ${e.message}');
+      String errorMessage = "An error occurred during member registration.";
+      if (e.code == 'email-already-in-use') {
+        errorMessage = "This email is already registered.";
+      } else if (e.code == 'weak-password') {
+        errorMessage = "The password provided is too weak.";
+      } else if (e.code == 'invalid-email') {
+        errorMessage = "The email address is not valid.";
+      }
+      return errorMessage;
     } catch (e, stackTrace) {
       log('Error adding member: $e', error: e, stackTrace: stackTrace);
       if (e is FirebaseException) {
         log('Firebase error code: ${e.code}, message: ${e.message}');
       }
-      rethrow;
+      return 'Failed to add member: ${e.toString()}';
+    }
+  }
+
+  // Add a method to handle member login
+  Future<String> loginMember(String email, String password) async {
+    try {
+      log('Attempting to login member with email: $email');
+      
+      // Sign in with Firebase Auth
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password
+      );
+      
+      // Get user data from Firestore
+      DocumentSnapshot userDoc = await _firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
+      
+      if (!userDoc.exists) {
+        return 'User data not found';
+      }
+      
+      log('Successfully logged in member: ${userDoc.get('name')}');
+      return 'Success';
+    } on FirebaseAuthException catch (e) {
+      log('Firebase Auth Error: ${e.code} - ${e.message}');
+      String errorMessage = "Login failed.";
+      if (e.code == 'user-not-found') {
+        errorMessage = "No member found with this email.";
+      } else if (e.code == 'wrong-password') {
+        errorMessage = "Incorrect password.";
+      } else if (e.code == 'invalid-email') {
+        errorMessage = "The email address is not valid.";
+      }
+      return errorMessage;
+    } catch (e) {
+      log('Error during login: $e');
+      return 'Login failed: ${e.toString()}';
+    }
+  }
+
+  // Add a method to reset password
+  Future<String> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return 'Password reset email sent';
+    } on FirebaseAuthException catch (e) {
+      log('Firebase Auth Error: ${e.code} - ${e.message}');
+      String errorMessage = "Failed to send password reset email.";
+      if (e.code == 'user-not-found') {
+        errorMessage = "No member found with this email.";
+      } else if (e.code == 'invalid-email') {
+        errorMessage = "The email address is not valid.";
+      }
+      return errorMessage;
+    } catch (e) {
+      log('Error sending password reset: $e');
+      return 'Failed to send password reset email: ${e.toString()}';
     }
   }
 
