@@ -343,4 +343,17 @@ class GymService {
       rethrow;
     }
   }
+
+  /// Save monthly payments for all members
+  Future<void> saveMonthlyPayments(String month, Map<String, bool> paymentMap) async {
+    try {
+      await _firestore.collection('payments').doc(month).set({
+        'month': month,
+        'records': paymentMap,
+      });
+    } catch (e, stackTrace) {
+      log('Error saving monthly payments: $e', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
 } 

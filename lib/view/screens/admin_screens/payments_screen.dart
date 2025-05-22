@@ -67,6 +67,40 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
             shadows: [Shadow(blurRadius: 8, color: Colors.black45, offset: Offset(0,2))],
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save, color: Colors.white),
+            tooltip: 'Save Payments',
+            onPressed: () async {
+              try {
+                // Convert selected month to yyyy-MM format
+                final monthDate = DateFormat('MMMM yyyy').parse(_selectedMonth);
+                final monthDocId = DateFormat('yyyy-MM').format(monthDate);
+                await _gymService.saveMonthlyPayments(
+                  monthDocId,
+                  _paymentStatus,
+                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Payments saved successfully!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to save payments: \\${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
