@@ -39,7 +39,7 @@ class _LogInState extends State<LogIn> {
             left: 0,
             right: 0,
             child: Image.asset(
-              'assets/images/img_png/splash.jpg',
+              'assets/images/img_png/_login.png',
               fit: BoxFit.cover,
               height: MediaQuery.of(context).size.height * 0.5,
             ),
@@ -63,7 +63,7 @@ class _LogInState extends State<LogIn> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Logo
-                      Image.asset('assets/images/img_png/img.png', height: 120),
+                      Image.asset('assets/images/img_png/logo.png', height: 120),
                       const SizedBox(height: 2),
 
                       const Align(
