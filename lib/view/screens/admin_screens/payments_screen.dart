@@ -122,7 +122,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/img_png/admin_.png'),
+                image: AssetImage('assets/images/img_png/img_3.png'),
                 fit: BoxFit.cover,
               ),
             ),
