@@ -48,45 +48,88 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/images/img_png/splash.jpg', fit: BoxFit.cover),
-          Container(color: const Color.fromARGB(139, 0, 0, 0)),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                 colors: [ Color(0xff1a1a1a), Color(0xff000000) ],
+              ),
+            ),
+          ),
+          Opacity(
+            opacity: 0.2,
+            child: Image.asset('assets/images/img_png/splash.png', fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+          ),
           SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Spacer(),
-                Image.asset('assets/images/img_png/logo.png', width: 70, height: 70),
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 1500),
+                  builder: (context, value, child) {
+                     return Opacity(
+                        opacity: value,
+                        child: Image.asset('assets/images/img_png/logo.png', width: 170, height: 170),
+                     );
+                  },
+                ),
                 const SizedBox(height: 20),
-                const Text(
-                  'SriWay',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 1500),
+                  builder: (context, value, child) {
+                     return Opacity(
+                        opacity: value,
+                        child: const Text(
+                          'XZO',
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                     );
+                  },
                 ),
                 const SizedBox(height: 15),
-                const Text(
-                  'Welcome to Sri Lanka',
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-                const SizedBox(height: 5),
-                const Text(
-                  'Sri Lankan Travel Partner',
-                  style: TextStyle(fontSize: 14, color: Colors.white),
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 1500),
+                  builder: (context, value, child) {
+                     return Opacity(
+                        opacity: value,
+                        child: Column(
+                          children: [
+                            const Text(
+                              'Welcome to XZO Fitness',
+                              style: TextStyle(fontSize: 20, color: Colors.white),
+                            ),
+                            const SizedBox(height: 5),
+                            const Text(
+                              'Your Personal Fitness Companion',
+                              style: TextStyle(fontSize: 14, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                     );
+                  },
                 ),
                 const SizedBox(height: 40),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: SizedBox(
-                    width: 200,
-                    child: LinearProgressIndicator(
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Colors.white,
-                      ),
-                      backgroundColor: Colors.white.withOpacity(0.3),
-                    ),
-                  ),
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 1500),
+                  builder: (context, value, child) {
+                     return Opacity(
+                        opacity: value,
+                        child: CircularProgressIndicator(
+                           valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                           strokeWidth: 4.0,
+                        ),
+                     );
+                  },
                 ),
                 const SizedBox(height: 90),
               ],
