@@ -72,7 +72,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   builder: (context, value, child) {
                      return Opacity(
                         opacity: value,
-                        child: Image.asset('assets/images/img_png/logo.png', width: 170, height: 170),
+                        child: Image.asset('assets/images/img_png/logo_.png', width: 350, height: 350),
                      );
                   },
                 ),
@@ -83,14 +83,6 @@ class _SplashScreenState extends State<SplashScreen> {
                   builder: (context, value, child) {
                      return Opacity(
                         opacity: value,
-                        child: const Text(
-                          'XZO',
-                          style: TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
                      );
                   },
                 ),
@@ -103,15 +95,6 @@ class _SplashScreenState extends State<SplashScreen> {
                         opacity: value,
                         child: Column(
                           children: [
-                            const Text(
-                              'Welcome to XZO Fitness',
-                              style: TextStyle(fontSize: 20, color: Colors.white),
-                            ),
-                            const SizedBox(height: 5),
-                            const Text(
-                              'Your Personal Fitness Companion',
-                              style: TextStyle(fontSize: 14, color: Colors.white),
-                            ),
                           ],
                         ),
                      );
