@@ -28,6 +28,18 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   void initState() {
     super.initState();
     _membersFuture = _gymService.getMembers();
+    _fetchAndSetPayments();
+  }
+
+  Future<void> _fetchAndSetPayments() async {
+    // Convert selected month to yyyy-MM format
+    final monthDate = DateFormat('MMMM yyyy').parse(_selectedMonth);
+    final monthDocId = DateFormat('yyyy-MM').format(monthDate);
+    final payments = await _gymService.fetchMonthlyPayments(monthDocId);
+    setState(() {
+      _paymentStatus.clear();
+      _paymentStatus.addAll(payments);
+    });
   }
 
   @override
@@ -88,6 +100,8 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                     ),
                   );
                 }
+                // Refresh payment status after saving
+                await _fetchAndSetPayments();
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -153,6 +167,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                             setState(() {
                               _selectedMonth = val!;
                             });
+                            _fetchAndSetPayments();
                           },
                         ),
                       ),

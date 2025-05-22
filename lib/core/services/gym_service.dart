@@ -356,4 +356,19 @@ class GymService {
       rethrow;
     }
   }
+
+  /// Fetch monthly payments for all members
+  Future<Map<String, bool>> fetchMonthlyPayments(String month) async {
+    try {
+      final doc = await _firestore.collection('payments').doc(month).get();
+      if (!doc.exists) return {};
+      final data = doc.data();
+      if (data == null || data['records'] == null) return {};
+      final Map<String, dynamic> records = Map<String, dynamic>.from(data['records']);
+      return records.map((key, value) => MapEntry(key, value as bool));
+    } catch (e, stackTrace) {
+      log('Error fetching monthly payments: $e', error: e, stackTrace: stackTrace);
+      return {};
+    }
+  }
 } 
