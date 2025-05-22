@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/services/user_service.dart';
 import '../../view_layer.dart';
 import 'members_screen.dart';
+import 'trainers_screen.dart';
 
 //Admin homepage provides actions,data view.
 class AdminHomePage extends StatefulWidget {
@@ -137,6 +138,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
                           if (action.label == 'Members') {
                             Navigator.of(context).push(
                               MaterialPageRoute(builder: (_) => MembersScreen()),
+                            );
+                          } else if (action.label == 'Trainers') {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const TrainersScreen()),
                             );
                           } else {
                             Navigator.of(context).pushNamed(action.route);

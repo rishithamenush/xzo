@@ -299,27 +299,27 @@ class _LogInState extends State<LogIn> {
                       ),
                       const SizedBox(height: 5),
                       // Create Account
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Don't have an account?",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pushReplacementNamed(signUp);
-                            },
-                            child: const Text(
-                              'Create Account',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.center,
+                      //   children: [
+                      //     const Text(
+                      //       "Don't have an account?",
+                      //       style: TextStyle(color: Colors.white),
+                      //     ),
+                      //     TextButton(
+                      //       onPressed: () {
+                      //         Navigator.of(context).pushReplacementNamed(signUp);
+                      //       },
+                      //       child: const Text(
+                      //         'Create Account',
+                      //         style: TextStyle(
+                      //           fontWeight: FontWeight.bold,
+                      //           color: Colors.white,
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
                       // Admin Login Option
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
