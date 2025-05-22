@@ -173,33 +173,23 @@ class ShopScreen extends StatelessWidget {
       ),
       margin: EdgeInsets.symmetric(vertical: 4, horizontal: 2),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              product['image']!,
-              height: 90,
-              width: 90,
-              fit: BoxFit.cover,
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                product['image']!,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
-          SizedBox(height: 12),
+          SizedBox(height: 8),
           Text(
             product['name']!,
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
             textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 6),
-          Text(
-            '20% OFF',
-            style: TextStyle(color: Color(0xFFB71C1C), fontWeight: FontWeight.bold, fontSize: 13),
-          ),
-          SizedBox(height: 6),
-          Text(
-            '20% OFF',
-            style: TextStyle(color: Color(0xFFB71C1C), fontWeight: FontWeight.bold, fontSize: 13),
           ),
           SizedBox(height: 6),
           Text(

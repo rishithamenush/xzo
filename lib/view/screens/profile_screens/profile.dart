@@ -27,7 +27,7 @@ class _ProfileScreen extends State<ProfileScreen> {
               Center(
                 child: CircleAvatar(
                   radius: 48,
-                  backgroundImage: AssetImage('assets/images/img_png/splash.jpg'),
+                  backgroundImage: AssetImage('assets/images/img_png/userProfile.png'),
                 ),
               ),
               SizedBox(height: 16),
@@ -123,6 +123,22 @@ class _ProfileScreen extends State<ProfileScreen> {
               SizedBox(height: 10),
               _activityTile(Icons.favorite, 'HIIT Training', '2 days ago', '25 min', '240 cal'),
               SizedBox(height: 24),
+              // Logout Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await userService.signOut();
+                    Navigator.of(context).pushReplacementNamed(signIn);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFB71C1C),
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: Text('Logout', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+              ),
             ],
           ),
         ),
