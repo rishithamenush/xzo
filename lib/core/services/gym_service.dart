@@ -5,27 +5,156 @@ import '../models/class_model.dart';
 import '../models/payment_model.dart';
 import '../models/attendance_model.dart';
 import '../models/announcement_model.dart';
+import 'dart:developer';
 
 class GymService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Members
   Future<void> addMember(MemberModel member) async {
-    final doc = await _firestore.collection('members').add(member.toJson());
-    await doc.update({'id': doc.id});
+    try {
+      log('Starting addMember()...');
+      
+      // Convert MemberModel to user data
+      final userData = {
+        'id': member.id,
+        'name': member.name,
+        'email': member.email,
+        'phone': member.phone,
+        'membershipType': member.membershipType,
+        'registrationNumber': member.registrationNumber,
+        'joinDate': member.joinDate != null ? Timestamp.fromDate(member.joinDate!) : null,
+        'expiryDate': member.expiryDate != null ? Timestamp.fromDate(member.expiryDate!) : null,
+        'role': 'user', // Default role
+        'longitude': 0.0, // Default values
+        'latitude': 0.0,  // Default values
+        'favList': [],    // Default empty list
+      };
+      
+      log('User data to add: $userData');
+      
+      final doc = await _firestore.collection('users').add(userData);
+      log('Created new user document with ID: ${doc.id}');
+      
+      await doc.update({'id': doc.id});
+      log('Updated document with ID field');
+      
+      log('Successfully added member: ${member.name} (ID: ${doc.id})');
+    } catch (e, stackTrace) {
+      log('Error adding member: $e', error: e, stackTrace: stackTrace);
+      if (e is FirebaseException) {
+        log('Firebase error code: ${e.code}, message: ${e.message}');
+      }
+      rethrow;
+    }
   }
 
   Future<List<MemberModel>> getMembers() async {
-    final snapshot = await _firestore.collection('members').get();
-    return snapshot.docs.map((doc) => MemberModel.fromJson(doc.data())).toList();
+    try {
+      log('Starting getMembers()...');
+      
+      log('Fetching users from Firestore collection: users');
+      final snapshot = await _firestore.collection('users').get();
+      log('Retrieved ${snapshot.docs.length} user documents from Firestore');
+      
+      if (snapshot.docs.isEmpty) {
+        log('WARNING: No user documents found in Firestore collection: users');
+        return [];
+      }
+
+      // Log raw data from each document
+      for (var doc in snapshot.docs) {
+        log('Document ID: ${doc.id}');
+        log('Raw document data: ${doc.data().toString()}');
+        log('Document exists: ${doc.exists}');
+        log('Document metadata: ${doc.metadata.toString()}');
+      }
+      
+      final members = snapshot.docs.map((doc) {
+        try {
+          final data = doc.data();
+          if (data.isEmpty) {
+            log('WARNING: Empty document data for document ID: ${doc.id}');
+            return null;
+          }
+          
+          // Convert user data to member data
+          final memberData = {
+            'id': doc.id,
+            'name': data['name'],
+            'email': data['email'],
+            'phone': data['phone'],
+            'membershipType': data['membershipType'],
+            'registrationNumber': data['registrationNumber'],
+            'status': 'active', // Default status
+            'joinDate': data['joinDate'],
+            'expiryDate': data['expiryDate'],
+          };
+          
+          log('Converting user document ${doc.id} to MemberModel with data: ${memberData.toString()}');
+          
+          final member = MemberModel.fromJson(memberData);
+          log('Successfully converted member: ${member.name} (ID: ${member.id})');
+          log('Member details - Status: ${member.status}, Join Date: ${member.joinDate}, Expiry Date: ${member.expiryDate}');
+          return member;
+        } catch (e, stackTrace) {
+          log('ERROR converting document ${doc.id} to MemberModel: $e', error: e, stackTrace: stackTrace);
+          log('Problematic document data: ${doc.data().toString()}');
+          return null;
+        }
+      })
+      .where((member) => member != null) // Filter out any failed conversions
+      .cast<MemberModel>() // Cast back to MemberModel
+      .toList();
+      
+      log('Successfully converted ${members.length} members out of ${snapshot.docs.length} documents');
+      
+      // Log final member list
+      for (var member in members) {
+        log('Final member list - Name: ${member.name}, ID: ${member.id}, Status: ${member.status}, Join Date: ${member.joinDate}, Expiry Date: ${member.expiryDate}');
+      }
+      
+      return members;
+    } catch (e, stackTrace) {
+      log('ERROR in getMembers(): $e', error: e, stackTrace: stackTrace);
+      if (e is FirebaseException) {
+        log('Firebase error code: ${e.code}, message: ${e.message}');
+      }
+      rethrow;
+    }
   }
 
   Future<void> updateMember(MemberModel member) async {
-    await _firestore.collection('members').doc(member.id).update(member.toJson());
+    try {
+      log('Starting updateMember()...');
+      
+      // Convert MemberModel to user data
+      final userData = {
+        'name': member.name,
+        'email': member.email,
+        'phone': member.phone,
+        'membershipType': member.membershipType,
+        'registrationNumber': member.registrationNumber,
+        'joinDate': member.joinDate != null ? Timestamp.fromDate(member.joinDate!) : null,
+        'expiryDate': member.expiryDate != null ? Timestamp.fromDate(member.expiryDate!) : null,
+      };
+      
+      log('Updating user with ID: ${member.id}');
+      log('User data to update: $userData');
+      
+      await _firestore.collection('users').doc(member.id).update(userData);
+      log('Successfully updated member: ${member.name} (ID: ${member.id})');
+    } catch (e, stackTrace) {
+      log('Error updating member: $e', error: e, stackTrace: stackTrace);
+      if (e is FirebaseException) {
+        log('Firebase error code: ${e.code}, message: ${e.message}');
+      }
+      rethrow;
+    }
   }
 
   Future<void> deleteMember(String id) async {
-    await _firestore.collection('members').doc(id).delete();
+    await _firestore.collection('users').doc(id).delete();
   }
 
   // Trainers

@@ -2,21 +2,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MemberModel {
   String? id;
-  String name;
-  String email;
-  String phone;
-  String membershipType;
-  DateTime joinDate;
-  DateTime expiryDate;
+  String? name;
+  String? email;
+  String? phone;
+  String? membershipType;
+  String? registrationNumber;
+  String? status;
+  DateTime? joinDate;
+  DateTime? expiryDate;
 
   MemberModel({
     this.id,
-    required this.name,
-    required this.email,
-    required this.phone,
-    required this.membershipType,
-    required this.joinDate,
-    required this.expiryDate,
+    this.name,
+    this.email,
+    this.phone,
+    this.membershipType,
+    this.registrationNumber,
+    this.status = 'active',
+    this.joinDate,
+    this.expiryDate,
   });
 
   factory MemberModel.fromJson(Map<String, dynamic> json) {
@@ -26,8 +30,10 @@ class MemberModel {
       email: json['email'],
       phone: json['phone'],
       membershipType: json['membershipType'],
-      joinDate: (json['joinDate'] as Timestamp).toDate(),
-      expiryDate: (json['expiryDate'] as Timestamp).toDate(),
+      registrationNumber: json['registrationNumber'],
+      status: json['status'] ?? 'active',
+      joinDate: json['joinDate'] != null ? (json['joinDate'] as Timestamp).toDate() : null,
+      expiryDate: json['expiryDate'] != null ? (json['expiryDate'] as Timestamp).toDate() : null,
     );
   }
 
@@ -38,6 +44,8 @@ class MemberModel {
       'email': email,
       'phone': phone,
       'membershipType': membershipType,
+      'registrationNumber': registrationNumber,
+      'status': status,
       'joinDate': joinDate,
       'expiryDate': expiryDate,
     };
