@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Mock user data
     final String userName = (sharedUser.name != null && sharedUser.name!.trim().isNotEmpty) ? sharedUser.name! : 'User';
-    final String userAvatar = "assets/images/img_png/user_avatar.png"; // Replace with your avatar asset
+    final String userAvatar = "assets/images/img_png/userprof.png"; // Replace with your avatar asset
 
     return Scaffold(
       backgroundColor: Colors.black,
