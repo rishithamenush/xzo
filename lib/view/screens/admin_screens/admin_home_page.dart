@@ -14,52 +14,40 @@ class AdminHomePage extends StatefulWidget {
 class _AdminHomePageState extends State<AdminHomePage> {
   final List<_AdminAction> actions = [
     _AdminAction(
-      label: 'Add New Place',
-      icon: FontAwesomeIcons.mapLocationDot,
-      color: Color(0xFF1E64D7),
-      route: adminAddNewPlaceRoute,
-    ),
-    _AdminAction(
-      label: 'Add New Event',
-      icon: FontAwesomeIcons.calendarPlus,
-      color: Color(0xFF43A047),
-      route: adminAddNewEventRoute,
-    ),
-    _AdminAction(
-      label: 'Manage Places',
-      icon: FontAwesomeIcons.building,
-      color: Color(0xFF1976D2),
-      route: placesAdminRoute,
-    ),
-    _AdminAction(
-      label: 'Manage Events',
-      icon: FontAwesomeIcons.calendarAlt,
-      color: Color(0xFF00897B),
-      route: eventsAdminRoute,
-    ),
-    _AdminAction(
-      label: 'Manage Guides',
+      label: 'Members',
       icon: FontAwesomeIcons.users,
-      color: Color(0xFF7B1FA2),
-      route: guidesAdminRoute,
+      color: Color(0xFFB71C1C),
+      route: '/admin/members',
     ),
     _AdminAction(
-      label: 'Manage Cars',
-      icon: FontAwesomeIcons.car,
+      label: 'Trainers',
+      icon: FontAwesomeIcons.dumbbell,
+      color: Color(0xFF388E3C),
+      route: '/admin/trainers',
+    ),
+    _AdminAction(
+      label: 'Classes',
+      icon: FontAwesomeIcons.calendarAlt,
       color: Color(0xFF1976D2),
-      route: carsAdminRoute,
+      route: '/admin/classes',
     ),
     _AdminAction(
-      label: 'Reports',
-      icon: FontAwesomeIcons.fileAlt,
+      label: 'Attendance',
+      icon: FontAwesomeIcons.clipboardCheck,
       color: Color(0xFFF9A825),
-      route: allReportsAdminRoute,
+      route: '/admin/attendance',
     ),
     _AdminAction(
-      label: 'Requests',
-      icon: FontAwesomeIcons.userCheck,
+      label: 'Payments',
+      icon: FontAwesomeIcons.moneyCheckDollar,
       color: Color(0xFF8E24AA),
-      route: requestsAdminRoute,
+      route: '/admin/payments',
+    ),
+    _AdminAction(
+      label: 'Announcements',
+      icon: FontAwesomeIcons.bullhorn,
+      color: Color(0xFF43A047),
+      route: '/admin/announcements',
     ),
   ];
 
@@ -73,7 +61,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Admin Dashboard',
+          'Gym Admin Dashboard',
           style: ThemeManager.textStyle.copyWith(
             fontSize: LayoutManager.widthNHeight0(context, 1) * 0.05,
             fontWeight: FontWeight.bold,
@@ -93,7 +81,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/img_png/img_1.jpg'),
+                image: AssetImage('assets/images/img_png/admin_.png'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -103,8 +91,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.55),
-                    Colors.black.withOpacity(0.15),
+                    Color(0xFF2C0000).withOpacity(0.85),
+                    Color(0xFF000000).withOpacity(0.85),
                   ],
                 ),
               ),
@@ -118,7 +106,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 children: [
                   SizedBox(height: 10),
                   Text(
-                    'Welcome, Admin!',
+                    'Welcome, Gym Admin!',
                     style: ThemeManager.textStyle.copyWith(
                       fontSize: 26,
                       color: Colors.white,
@@ -128,7 +116,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Manage tourism content and users with ease.',
+                    'Manage your gym members, trainers, classes, and more.',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.white70,
