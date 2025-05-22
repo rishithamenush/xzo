@@ -184,8 +184,6 @@ class MyRouter {
         {
           return _route(const GuideManagementScreen());
         }
-      case carsRoute:
-        return _route(const CarsScreen());
       case carDetailsRoute:
         final arg = settings.arguments as Car;
         return _route(CarDetailsScreen(car: arg));

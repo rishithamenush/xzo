@@ -192,9 +192,9 @@ class _HomeScreenState extends State<HomeScreen> {
             // Top Performers
             Text("This Week's Top Performers", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
             SizedBox(height: 12),
-            _topPerformer(1, "Sarah Kim", "assets/images/img_png/sarah.png", 3240),
-            _topPerformer(2, "Mike Chen", "assets/images/img_png/mike.png", 2980),
-            _topPerformer(3, "Lisa Wang", "assets/images/img_png/lisa.png", 2540),
+            _topPerformer(1, "Ruwan Silva", "assets/images/img_png/user1.png", 3240),
+            _topPerformer(2, "Nuwan Thushara", "assets/images/img_png/user2.png", 2980),
+            _topPerformer(3, "Harsha Weerakoody", "assets/images/img_png/user3.png", 2540),
             SizedBox(height: 18),
 
             // 2x2 Grid of Action Buttons
