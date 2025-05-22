@@ -268,7 +268,7 @@ class _LogInState extends State<LogIn> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
-                            "Are you admin?",
+                            "Are you Coach?",
                             style: TextStyle(color: Colors.white),
                           ),
                           TextButton(

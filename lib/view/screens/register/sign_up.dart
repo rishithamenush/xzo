@@ -88,7 +88,7 @@ class _SingUpState extends State<SingUp> {
             left: 0,
             right: 0,
             child: Image.asset(
-              'assets/images/img_png/splash.jpg',
+              'assets/images/img_png/_login.png',
               fit: BoxFit.cover,
               height: MediaQuery.of(context).size.height * 0.5,
             ),
@@ -111,7 +111,7 @@ class _SingUpState extends State<SingUp> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Image.asset('assets/images/img_png/img.png', height: 120),
+                      Image.asset('assets/images/img_png/logo.png', height: 220),
                       const SizedBox(height: 20),
                       Text(
                         widget.isAdminAdd ? 'ADD NEW MEMBER' : 'CREATE ACCOUNT',
