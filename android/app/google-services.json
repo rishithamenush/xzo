@@ -1,0 +1,119 @@
+{
+  "project_info": {
+    "project_number": "901531000542",
+    "firebase_url": "https://xzofitness-35359-default-rtdb.firebaseio.com",
+    "project_id": "xzofitness-35359",
+    "storage_bucket": "xzofitness-35359.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901531000542:android:54aa4582f3d72f960d2c4f",
+        "android_client_info": {
+          "package_name": "com.company.xzoApp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "901531000542-a7io6t2ph3pqakd58265ai8smgnsgdqf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRnU1Fjf4Us77SLz634qkov9m8djs6dAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "901531000542-a7io6t2ph3pqakd58265ai8smgnsgdqf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "901531000542-blfv5nfnjfbtgdhurm8aise88hun19pn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gym"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901531000542:android:04f69629ae2d80660d2c4f",
+        "android_client_info": {
+          "package_name": "com.example.gym"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "901531000542-a7io6t2ph3pqakd58265ai8smgnsgdqf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRnU1Fjf4Us77SLz634qkov9m8djs6dAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "901531000542-a7io6t2ph3pqakd58265ai8smgnsgdqf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "901531000542-blfv5nfnjfbtgdhurm8aise88hun19pn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gym"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901531000542:android:8cf97b38965aa67d0d2c4f",
+        "android_client_info": {
+          "package_name": "com.example.turathi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "901531000542-a7io6t2ph3pqakd58265ai8smgnsgdqf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRnU1Fjf4Us77SLz634qkov9m8djs6dAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "901531000542-a7io6t2ph3pqakd58265ai8smgnsgdqf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "901531000542-blfv5nfnjfbtgdhurm8aise88hun19pn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gym"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
