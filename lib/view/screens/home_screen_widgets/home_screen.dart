@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     NotificationProvider notificationProvider = Provider.of<NotificationProvider>(context);
 
     // Mock user data
-    final String userName = "Mad";
+    final String userName = (sharedUser.name != null && sharedUser.name!.trim().isNotEmpty) ? sharedUser.name! : 'User';
     final String userAvatar = "assets/images/img_png/user_avatar.png"; // Replace with your avatar asset
 
     return Scaffold(
@@ -69,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      SizedBox(height: 44),
                       Text(
                         "Hi, $userName",
                         style: TextStyle(
