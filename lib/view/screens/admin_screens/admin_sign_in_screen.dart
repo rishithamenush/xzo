@@ -25,15 +25,11 @@ class _AdminSignInState extends State<AdminSignIn> {
       key: const Key("admin_sign_in"),
       body: Stack(
         children: [
-          // Background Image
-          Positioned(
-            top: -40,
-            left: 0,
-            right: 0,
+          // Full background image
+          Positioned.fill(
             child: Image.asset(
               'assets/images/img_png/_login.png',
               fit: BoxFit.cover,
-              height: MediaQuery.of(context).size.height * 0.5,
             ),
           ),
           // Gradient overlay
@@ -221,33 +217,33 @@ class _AdminSignInState extends State<AdminSignIn> {
                       ),
                       const SizedBox(height: 20),
                       // Create Admin Account Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 45,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => AdminSignUpScreen(),
-                              ),
-                            );
-                          },
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.white),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Create Admin Account',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
+                      // SizedBox(
+                      //   width: double.infinity,
+                      //   height: 45,
+                      //   child: OutlinedButton(
+                      //     onPressed: () {
+                      //       Navigator.of(context).push(
+                      //         MaterialPageRoute(
+                      //           builder: (context) => AdminSignUpScreen(),
+                      //         ),
+                      //       );
+                      //     },
+                      //     style: OutlinedButton.styleFrom(
+                      //       side: const BorderSide(color: Colors.white),
+                      //       shape: RoundedRectangleBorder(
+                      //         borderRadius: BorderRadius.circular(10),
+                      //       ),
+                      //     ),
+                      //     child: const Text(
+                      //       'Create Admin Account',
+                      //       style: TextStyle(
+                      //         fontWeight: FontWeight.bold,
+                      //         color: Colors.white,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                      // const SizedBox(height: 20),
 
                       // Back to User Mode
                       Row(
