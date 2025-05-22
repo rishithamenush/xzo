@@ -48,18 +48,25 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // Splash image as background
+          Image.asset(
+            'assets/images/img_png/splash.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          // Maroon-black gradient overlay
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                 colors: [ Color(0xff1a1a1a), Color(0xff000000) ],
+                colors: [
+                  Color(0xCC2C0000), // Maroon with opacity
+                  Color(0xCC000000), // Black with opacity
+                ],
               ),
             ),
-          ),
-          Opacity(
-            opacity: 0.2,
-            child: Image.asset('assets/images/img_png/splash.png', fit: BoxFit.cover, width: double.infinity, height: double.infinity),
           ),
           SafeArea(
             child: Column(
@@ -108,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen> {
                      return Opacity(
                         opacity: value,
                         child: CircularProgressIndicator(
-                           valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                           valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFB71C1C)),
                            strokeWidth: 4.0,
                         ),
                      );
