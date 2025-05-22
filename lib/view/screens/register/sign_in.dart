@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:turathi/core/data_layer.dart';
 import 'package:turathi/view/view_layer.dart';
 
+import '../../../core/services/gym_service.dart';
+
 
 //page to sign in the user with his email and password
 class LogIn extends StatefulWidget {
