@@ -263,4 +263,19 @@ class AdminService {
 
   Map<String, dynamic> dataList = {};
   ReportList reportList = ReportList(reports: []);
+
+  // Add a new admin account
+  Future<String> addAdmin(String email, String password) async {
+    try {
+      // Hash the password before saving
+      final hashedPassword = Crypt.sha256(password).toString();
+      await _fireStore.collection(_collectionName).add({
+        'adminId': email,
+        'password': hashedPassword,
+      });
+      return 'Admin account created successfully';
+    } catch (e) {
+      return 'Failed to create admin: ' + e.toString();
+    }
+  }
 }

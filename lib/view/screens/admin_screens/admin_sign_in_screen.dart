@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import '../../../core/data_layer.dart';
 import '../../view_layer.dart';
+import 'admin_sign_up_screen.dart';
 
 //Admin Sigin Page by ID and Password
 class AdminSignIn extends StatefulWidget {
@@ -30,12 +31,26 @@ class _AdminSignInState extends State<AdminSignIn> {
             left: 0,
             right: 0,
             child: Image.asset(
-              'assets/images/img_png/splash.jpg',
+              'assets/images/img_png/_login.png',
               fit: BoxFit.cover,
               height: MediaQuery.of(context).size.height * 0.5,
             ),
           ),
-
+          // Gradient overlay
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF2C0000), // Deep maroon
+                    Color(0xFF000000), // Black
+                  ],
+                ),
+              ),
+            ),
+          ),
           // Foreground Panel
           Align(
             alignment: Alignment.bottomCenter,
@@ -44,7 +59,14 @@ class _AdminSignInState extends State<AdminSignIn> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
               decoration: const BoxDecoration(
-                color: Colors.white,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xCC2C0000),
+                    Color(0xCC000000),
+                  ],
+                ),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
               ),
               child: SingleChildScrollView(
@@ -53,7 +75,7 @@ class _AdminSignInState extends State<AdminSignIn> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Image.asset('assets/images/img_png/img.png', height: 120),
+                      Image.asset('assets/images/img_png/logo.png', height: 120),
                       const SizedBox(height: 20),
                       const Align(
                         alignment: Alignment.centerLeft,
@@ -62,48 +84,58 @@ class _AdminSignInState extends State<AdminSignIn> {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Admin ID Field
+                      // Admin Email Field (visible)
                       TextFormField(
                         controller: _idController,
-                        keyboardType: TextInputType.text,
+                        keyboardType: TextInputType.emailAddress,
+                        style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Enter Admin ID',
-                          prefixIcon: const Icon(Icons.admin_panel_settings),
+                          hintText: 'Enter Admin Email',
+                          hintStyle: const TextStyle(color: Colors.white70),
+                          prefixIcon: const Icon(Icons.email, color: Colors.white),
                           filled: true,
-                          fillColor: Colors.grey[100],
+                          fillColor: Colors.transparent,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.white, width: 2),
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
+                            borderSide: const BorderSide(color: Colors.white),
                           ),
                         ),
                         validator: (value) {
                           if (value!.isEmpty) {
-                            return "Enter Admin ID";
+                            return "Enter Admin Email";
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
-
                       // Password Field
                       TextFormField(
                         controller: _passController,
                         obscureText: _obscurePassword,
+                        style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           hintText: 'Enter Password',
-                          prefixIcon: const Icon(Icons.lock),
+                          hintStyle: const TextStyle(color: Colors.white70),
+                          prefixIcon: const Icon(Icons.lock, color: Colors.white),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword
                                   ? Icons.visibility
                                   : Icons.visibility_off,
-                              color: Colors.grey,
+                              color: Colors.white,
                             ),
                             onPressed: () {
                               setState(() {
@@ -112,10 +144,18 @@ class _AdminSignInState extends State<AdminSignIn> {
                             },
                           ),
                           filled: true,
-                          fillColor: Colors.grey[100],
+                          fillColor: Colors.transparent,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Colors.white, width: 2),
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
+                            borderSide: const BorderSide(color: Colors.white),
                           ),
                         ),
                         validator: (value) {
@@ -128,7 +168,6 @@ class _AdminSignInState extends State<AdminSignIn> {
                         },
                       ),
                       const SizedBox(height: 20),
-
                       // Sign In Button
                       SizedBox(
                         width: double.infinity,
@@ -139,7 +178,6 @@ class _AdminSignInState extends State<AdminSignIn> {
                               bool t = await service.signIn(
                                   _idController.text, _passController.text);
                               log(t.toString());
-
                               if (t) {
                                 AdminCheck = true;
                                 Navigator.of(context)
@@ -167,13 +205,41 @@ class _AdminSignInState extends State<AdminSignIn> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue[800],
+                            backgroundColor: Color(0xFFB71C1C), // Bold maroon
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
                           child: const Text(
                             'SIGN IN',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Create Admin Account Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 45,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => AdminSignUpScreen(),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.white),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            'Create Admin Account',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -189,7 +255,7 @@ class _AdminSignInState extends State<AdminSignIn> {
                         children: [
                           const Text(
                             "Back to User Mode?",
-                            style: TextStyle(color: Colors.black87),
+                            style: TextStyle(color: Colors.white),
                           ),
                           TextButton(
                             onPressed: () {
@@ -200,7 +266,7 @@ class _AdminSignInState extends State<AdminSignIn> {
                               'Yes',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue,
+                                color: Colors.white,
                               ),
                             ),
                           ),
