@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/services/user_service.dart';
 import '../../view_layer.dart';
+import 'members_screen.dart';
 
 //Admin homepage provides actions,data view.
 class AdminHomePage extends StatefulWidget {
@@ -132,7 +133,15 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       mainAxisSpacing: 18,
                       childAspectRatio: 1.1,
                       children: [
-                        ...actions.map((action) => _AdminActionCard(action: action)),
+                        ...actions.map((action) => _AdminActionCard(action: action, onTap: () {
+                          if (action.label == 'Members') {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => MembersScreen()),
+                            );
+                          } else {
+                            Navigator.of(context).pushNamed(action.route);
+                          }
+                        })),
                         _SignOutCard(),
                       ],
                     ),
@@ -157,12 +166,13 @@ class _AdminAction {
 
 class _AdminActionCard extends StatelessWidget {
   final _AdminAction action;
-  const _AdminActionCard({required this.action});
+  final VoidCallback? onTap;
+  const _AdminActionCard({required this.action, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).pushNamed(action.route),
+      onTap: onTap ?? () => Navigator.of(context).pushNamed(action.route),
       child: Card(
         elevation: 10,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),

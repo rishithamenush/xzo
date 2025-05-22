@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../utils/shared.dart';
 
 enum UsersRole { user, expert }
@@ -14,14 +16,23 @@ class UserModel {
 
 
   String? phone;
+  String? registrationNumber;
+  String? membershipType;
+  DateTime? joinDate;
+  DateTime? expiryDate;
   UserModel.empty();
-  UserModel(
-      {this.id,
-      required this.name,
-      required this.email,
-      required this.phone,
-      required this.longitude,
-      required this.latitude}) {
+  UserModel({
+    this.id,
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.longitude,
+    required this.latitude,
+    this.registrationNumber,
+    this.membershipType,
+    this.joinDate,
+    this.expiryDate,
+  }) {
     role = UsersRole.user.name;
     id = uuid.v4();
     favList=[];
@@ -38,8 +49,10 @@ class UserModel {
     phone = json['phone'];
     email = json['email'];
     favList = json['favList'].cast<String>();
-
-
+    registrationNumber = json['registrationNumber'];
+    membershipType = json['membershipType'];
+    joinDate = json['joinDate'] != null ? (json['joinDate'] as Timestamp).toDate() : null;
+    expiryDate = json['expiryDate'] != null ? (json['expiryDate'] as Timestamp).toDate() : null;
   }
 
 //convert the UserModel instance to a JSON object
@@ -55,6 +68,10 @@ class UserModel {
     data['phone'] = phone;
     data['email'] = email;
     data['favList'] = favList;
+    data['registrationNumber'] = registrationNumber;
+    data['membershipType'] = membershipType;
+    data['joinDate'] = joinDate;
+    data['expiryDate'] = expiryDate;
 
     return data;
   }

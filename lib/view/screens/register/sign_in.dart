@@ -94,14 +94,14 @@ class _LogInState extends State<LogIn> {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      // Email Field
+                      // Registration Number Field
                       TextFormField(
                         controller: textController.controllerEmail,
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Enter Email',
+                          hintText: 'Enter Registration Number',
                           hintStyle: const TextStyle(color: Colors.white70),
-                          prefixIcon: const Icon(Icons.email, color: Colors.white),
+                          prefixIcon: const Icon(Icons.confirmation_number, color: Colors.white),
                           filled: true,
                           fillColor: Colors.transparent,
                           enabledBorder: OutlineInputBorder(
@@ -119,13 +119,7 @@ class _LogInState extends State<LogIn> {
                         ),
                         validator: (value) {
                           if (value!.isEmpty) {
-                            return "Enter Email";
-                          }
-                          bool emailValid = RegExp(
-                                  r"^[a-zA-Z0-9.a-zA-Z0-9.1#\$&'*+-/=?^_ {|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                              .hasMatch(value);
-                          if (!emailValid) {
-                            return "Enter valid Email";
+                            return "Enter Registration Number";
                           }
                           return null;
                         },

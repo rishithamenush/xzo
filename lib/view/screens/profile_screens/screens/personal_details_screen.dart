@@ -14,11 +14,19 @@ class PersonalDetailsScreen extends StatefulWidget {
 class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   SignUpController signUpController = SignUpController();
   TextController textController = TextController();
+  TextEditingController roleController = TextEditingController();
   String name = "", role = "", emailAddress = "", phoneNu = "";
 
   @override
   void initState() {
     super.initState();
+    roleController.text = sharedUser.role.toString().toUpperCase();
+  }
+
+  @override
+  void dispose() {
+    roleController.dispose();
+    super.dispose();
   }
 
   @override
@@ -105,7 +113,7 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
                         }
                         return null;
                       },
-                      passController: signUpController.secondName,
+                      passController: roleController,
                       str: sharedUser.role.toString().toUpperCase(),
                     ),
                     SizedBox(

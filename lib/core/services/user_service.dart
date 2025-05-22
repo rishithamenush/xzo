@@ -12,35 +12,42 @@ class UserService {
 
   // create new account
   Future<String> addUser(UserModel model, String password) async {
-    bool mounted = false;
     try {
-      // add user to FirebaseAuth
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: model.email!, password: password);
-    } catch (e) {
-      if (e is FirebaseAuthException) {
-        log("Error occurred: $e");
-        mounted = true;
-        String errorMessage = "An error occurred during sign up.";
+      log("Starting user creation process...");
+      log("Email: ${model.email}, Name: ${model.name}");
+      
+      // First create the Firebase Auth user
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: model.email!,
+        password: password
+      );
+      log("Firebase Auth user created successfully: ${userCredential.user?.uid}");
 
-        if (e.code == 'email-already-in-use') {
-          errorMessage = "The account already exists for that email.";
-        }
-        if (mounted) {
-          return errorMessage;
-        }
+      // Then add user to Firestore
+      DocumentReference docRef = await _fireStore
+          .collection(_collectionName)
+          .add(model.toJson());
+      
+      log("User added to Firestore successfully with ID: ${docRef.id}");
+      return "Done";
+    } on FirebaseAuthException catch (e) {
+      log("Firebase Auth Error: ${e.code} - ${e.message}");
+      String errorMessage = "An error occurred during sign up.";
+      if (e.code == 'email-already-in-use') {
+        errorMessage = "The account already exists for that email.";
+      } else if (e.code == 'weak-password') {
+        errorMessage = "The password provided is too weak.";
+      } else if (e.code == 'invalid-email') {
+        errorMessage = "The email address is not valid.";
       }
+      return errorMessage;
+    } on FirebaseException catch (e) {
+      log("Firestore Error: ${e.code} - ${e.message}");
+      return "Failed to add user to database: ${e.message}";
+    } catch (e) {
+      log("Unexpected error: $e");
+      return "An unexpected error occurred: $e";
     }
-    // add user to database
-    _fireStore
-        .collection(_collectionName)
-        .add(model.toJson())
-        .whenComplete(() => "user added successfully")
-        .catchError((error) {
-      log(error.toString());
-      return "Failed";
-    });
-    return "Done";
   }
 
   //update user data in database
@@ -179,6 +186,7 @@ class UserService {
     UserModel tempModel;
     UserList userList = UserList(users: []);
     for (var item in usersData.docs) {
+      Map<String, dynamic> itemData = item.data() as Map<String, dynamic>;
       data["id"] = item.get("id");
       data["name"] = item.get("name");
       data["role"] = item.get("role");
@@ -187,7 +195,10 @@ class UserService {
       data["email"] = item.get("email");
       data["phone"] = item.get("phone");
       data["favList"] = item.get("favList");
-
+      data["registrationNumber"] = itemData.containsKey("registrationNumber") ? item.get("registrationNumber") : null;
+      data["membershipType"] = itemData.containsKey("membershipType") ? item.get("membershipType") : null;
+      data["joinDate"] = itemData.containsKey("joinDate") ? item.get("joinDate") : null;
+      data["expiryDate"] = itemData.containsKey("expiryDate") ? item.get("expiryDate") : null;
       tempModel = UserModel.fromJson(data);
       userList.users.add(tempModel);
     }
