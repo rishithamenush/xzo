@@ -330,4 +330,17 @@ class GymService {
   Future<void> deleteAnnouncement(String id) async {
     await _firestore.collection('announcements').doc(id).delete();
   }
+
+  /// Save daily attendance for all members
+  Future<void> saveDailyAttendance(String date, Map<String, bool> attendanceMap) async {
+    try {
+      await _firestore.collection('attendance').doc(date).set({
+        'date': date,
+        'records': attendanceMap,
+      });
+    } catch (e, stackTrace) {
+      log('Error saving daily attendance: $e', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
 } 

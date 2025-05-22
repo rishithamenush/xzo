@@ -46,6 +46,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     final today = DateFormat('EEEE, MMM d, yyyy').format(DateTime.now());
+    final todayDocId = DateFormat('yyyy-MM-dd').format(DateTime.now());
     return Scaffold(
       backgroundColor: ThemeManager.background,
       appBar: AppBar(
@@ -62,6 +63,37 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             shadows: [Shadow(blurRadius: 8, color: Colors.black45, offset: Offset(0,2))],
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save, color: Colors.white),
+            tooltip: 'Save Attendance',
+            onPressed: () async {
+              try {
+                await _gymService.saveDailyAttendance(
+                  todayDocId,
+                  _attendanceStatus,
+                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Attendance saved successfully!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to save attendance: \\${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
