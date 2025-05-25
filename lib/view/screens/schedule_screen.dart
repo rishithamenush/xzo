@@ -9,6 +9,7 @@ import 'dart:developer';
 
 import '../../core/models/workout_progress_model.dart';
 
+
 class ScheduleScreen extends StatefulWidget {
   @override
   State<ScheduleScreen> createState() => _ScheduleScreenState();

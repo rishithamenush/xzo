@@ -8,8 +8,12 @@ import 'package:turathi/view/view_layer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:turathi/core/services/gym_service.dart';
-import 'package:turathi/core/models/workout_progress_model.dart';
 import 'package:intl/intl.dart';
+import 'package:turathi/view/screens/schedule_screen.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:turathi/core/models/workout_progress_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:turathi/core/models/member_model.dart';
 
 //user home page includes popular places,events,notifications and, actions such as:adding place,navigate through the app
 class HomeScreen extends StatefulWidget {
@@ -422,7 +426,325 @@ class _HomeScreenState extends State<HomeScreen> {
         cardColor = Color(0xFF3A0D1F);
     }
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: () async {
+        if (label == "Start Workout") {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => ScheduleScreen()),
+          );
+        } else if (label == "Attendance") {
+          // Fetch attended dates
+          final _auth = FirebaseAuth.instance;
+          final _gymService = GymService();
+          final userId = _auth.currentUser?.uid;
+          Set<DateTime> attendedDates = {};
+          if (userId != null) {
+            final schedules = await _gymService.getMemberWorkoutSchedules(userId);
+            for (final schedule in schedules) {
+              final progressList = await _gymService.getWorkoutProgressList(userId, schedule.id!);
+              for (final p in progressList) {
+                if (p.status == 'completed') {
+                  attendedDates.add(DateUtils.dateOnly(p.date));
+                }
+              }
+            }
+          }
+          showDialog(
+            context: context,
+            builder: (context) => Dialog(
+              backgroundColor: const Color(0xFF240006),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(18.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Attendance Calendar',
+                      style: TextStyle(
+                        color: Colors.yellow[700],
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    TableCalendar(
+                      firstDay: DateTime.utc(2020, 1, 1),
+                      lastDay: DateTime.utc(2100, 12, 31),
+                      focusedDay: DateTime.now(),
+                      calendarBuilders: CalendarBuilders(
+                        defaultBuilder: (context, day, focusedDay) {
+                          final isAttended = attendedDates.contains(DateUtils.dateOnly(day));
+                          if (isAttended) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.yellow[700],
+                                shape: BoxShape.circle,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '${day.day}',
+                                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                              ),
+                            );
+                          }
+                          return null;
+                        },
+                        todayBuilder: (context, day, focusedDay) {
+                          final isAttended = attendedDates.contains(DateUtils.dateOnly(day));
+                          if (isAttended) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.yellow[700],
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.red, width: 2),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '${day.day}',
+                                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                              ),
+                            );
+                          }
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.yellow[700],
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${day.day}',
+                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                            ),
+                          );
+                        },
+                      ),
+                      calendarStyle: CalendarStyle(
+                        weekendTextStyle: TextStyle(color: Colors.red[200]),
+                        defaultTextStyle: TextStyle(color: Colors.white),
+                        outsideTextStyle: TextStyle(color: Colors.white24),
+                      ),
+                      headerStyle: HeaderStyle(
+                        titleTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                        formatButtonVisible: false,
+                        leftChevronIcon: Icon(Icons.chevron_left, color: Colors.yellow[700]),
+                        rightChevronIcon: Icon(Icons.chevron_right, color: Colors.yellow[700]),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF3A0D1F),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      daysOfWeekStyle: DaysOfWeekStyle(
+                        weekendStyle: TextStyle(color: Colors.red[200]),
+                        weekdayStyle: TextStyle(color: Colors.white70),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow[700],
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: Text('Close', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        } else if (label == "DietPlans") {
+          final _auth = FirebaseAuth.instance;
+          final _gymService = GymService();
+          final userId = _auth.currentUser?.uid;
+          MemberModel? member;
+          String? selectedPlan;
+          if (userId != null) {
+            final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+            if (userDoc.exists) {
+              member = MemberModel.fromJson(userDoc.data()!);
+              selectedPlan = member.dietPlan;
+            }
+          }
+          final List<String> dietPlans = [
+            'Balanced Diet',
+            'Keto Diet',
+            'Vegan Diet',
+            'Vegetarian Diet',
+            'Paleo Diet',
+            'Mediterranean Diet',
+            'Low-Carb Diet',
+            'High-Protein Diet',
+            'DASH Diet',
+            'Intermittent Fasting',
+            'Gluten-Free Diet',
+            'Pescatarian Diet',
+            'Raw Food Diet',
+            'Zone Diet',
+            'Flexitarian Diet',
+            'Whole30 Diet',
+            'Low-Fat Diet',
+            'Diabetic Diet',
+            'Anti-Inflammatory Diet',
+            'Custom Plan',
+          ];
+          final Map<String, String> dietDescriptions = {
+            'Balanced Diet': 'A diet that includes all food groups in the right proportions for optimal health.',
+            'Keto Diet': 'A low-carb, high-fat diet that helps burn fat more effectively.',
+            'Vegan Diet': 'A plant-based diet that excludes all animal products.',
+            'Vegetarian Diet': 'A diet that excludes meat and fish but may include dairy and eggs.',
+            'Paleo Diet': 'Focuses on foods presumed to be eaten by early humans: lean meats, fish, fruits, vegetables, nuts.',
+            'Mediterranean Diet': 'Inspired by the eating habits of countries bordering the Mediterranean Sea. Rich in olive oil, fruits, vegetables, and fish.',
+            'Low-Carb Diet': 'Limits carbohydrates, focusing on protein and fat-rich foods.',
+            'High-Protein Diet': 'Emphasizes protein-rich foods to build muscle and aid weight loss.',
+            'DASH Diet': 'Dietary Approaches to Stop Hypertension. Focuses on reducing sodium and eating nutrient-rich foods.',
+            'Intermittent Fasting': 'Cycles between periods of fasting and eating. Popular for weight loss.',
+            'Gluten-Free Diet': 'Excludes gluten, found in wheat, barley, and rye. Essential for people with celiac disease.',
+            'Pescatarian Diet': 'A vegetarian diet that includes fish and seafood.',
+            'Raw Food Diet': 'Consists mainly of raw and unprocessed foods.',
+            'Zone Diet': 'Balances protein, carbs, and fat in a 30-40-30 ratio.',
+            'Flexitarian Diet': 'Primarily vegetarian but occasionally includes meat or fish.',
+            'Whole30 Diet': 'A 30-day diet that eliminates sugar, alcohol, grains, legumes, soy, and dairy.',
+            'Low-Fat Diet': 'Limits fat intake, especially saturated fat.',
+            'Diabetic Diet': 'Designed to help control blood sugar. Focuses on healthy carbs, fiber, and portion control.',
+            'Anti-Inflammatory Diet': 'Focuses on foods that reduce inflammation, such as leafy greens, nuts, and berries.',
+            'Custom Plan': 'A personalized plan tailored to your unique needs and preferences.',
+          };
+          final Map<String, List<String>> sampleMeals = {
+            'Balanced Diet': ['Oatmeal with fruit', 'Grilled chicken salad', 'Brown rice with veggies'],
+            'Keto Diet': ['Eggs and avocado', 'Grilled salmon with asparagus', 'Chicken with cheese'],
+            'Vegan Diet': ['Tofu stir-fry', 'Lentil soup', 'Quinoa salad'],
+            'Vegetarian Diet': ['Greek yogurt parfait', 'Vegetable curry', 'Egg salad sandwich'],
+            'Paleo Diet': ['Baked sweet potato', 'Grilled steak with veggies', 'Fruit salad'],
+            'Mediterranean Diet': ['Hummus and pita', 'Grilled fish with veggies', 'Greek salad'],
+            'Low-Carb Diet': ['Omelette', 'Chicken Caesar salad', 'Zucchini noodles'],
+            'High-Protein Diet': ['Protein shake', 'Turkey breast', 'Cottage cheese with fruit'],
+            'DASH Diet': ['Oatmeal', 'Grilled chicken', 'Steamed broccoli'],
+            'Intermittent Fasting': ['(Eat during window)', 'Salmon bowl', 'Veggie omelette'],
+            'Gluten-Free Diet': ['Rice noodles', 'Grilled shrimp', 'Fruit smoothie'],
+            'Pescatarian Diet': ['Tuna salad', 'Grilled tilapia', 'Vegetable soup'],
+            'Raw Food Diet': ['Raw veggie wrap', 'Fruit bowl', 'Nuts and seeds'],
+            'Zone Diet': ['Chicken breast', 'Brown rice', 'Steamed veggies'],
+            'Flexitarian Diet': ['Veggie burger', 'Chicken stir-fry', 'Fruit parfait'],
+            'Whole30 Diet': ['Egg muffins', 'Zucchini noodles', 'Grilled chicken'],
+            'Low-Fat Diet': ['Steamed fish', 'Vegetable soup', 'Fruit salad'],
+            'Diabetic Diet': ['Whole grain toast', 'Grilled chicken', 'Mixed greens'],
+            'Anti-Inflammatory Diet': ['Berry smoothie', 'Salmon with spinach', 'Walnut salad'],
+            'Custom Plan': ['Custom meal 1', 'Custom meal 2', 'Custom meal 3'],
+          };
+          await showDialog(
+            context: context,
+            builder: (context) => Dialog(
+              backgroundColor: const Color(0xFF240006),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(18.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Select Your Diet Plan',
+                      style: TextStyle(
+                        color: Colors.yellow[700],
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    SizedBox(
+                      height: 350,
+                      child: ListView.separated(
+                        itemCount: dietPlans.length,
+                        separatorBuilder: (_, __) => Divider(color: Colors.white12, height: 1),
+                        itemBuilder: (context, index) {
+                          final plan = dietPlans[index];
+                          final isSelected = plan == selectedPlan;
+                          return ListTile(
+                            title: Text(plan, style: TextStyle(color: isSelected ? Colors.yellow[700] : Colors.white, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                            trailing: isSelected ? Icon(Icons.check_circle, color: Colors.yellow[700]) : null,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            tileColor: isSelected ? Colors.yellow[700]!.withOpacity(0.08) : Colors.transparent,
+                            onTap: () async {
+                              // Show details dialog
+                              await showDialog(
+                                context: context,
+                                builder: (context) => Dialog(
+                                  backgroundColor: const Color(0xFF240006),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(18.0),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(plan, style: TextStyle(color: Colors.yellow[700], fontWeight: FontWeight.bold, fontSize: 22)),
+                                            ),
+                                            if (isSelected)
+                                              Icon(Icons.check_circle, color: Colors.yellow[700]),
+                                          ],
+                                        ),
+                                        SizedBox(height: 12),
+                                        Text(dietDescriptions[plan] ?? '', style: TextStyle(color: Colors.white70, fontSize: 15)),
+                                        SizedBox(height: 16),
+                                        Text('Sample Meals:', style: TextStyle(color: Colors.yellow[700], fontWeight: FontWeight.bold, fontSize: 16)),
+                                        ...?sampleMeals[plan]?.map((meal) => Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 2.0),
+                                          child: Text('• $meal', style: TextStyle(color: Colors.white, fontSize: 14)),
+                                        )),
+                                        SizedBox(height: 20),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: Text('Back', style: TextStyle(color: Colors.white70)),
+                                            ),
+                                            SizedBox(width: 12),
+                                            ElevatedButton(
+                                              onPressed: isSelected || userId == null ? null : () async {
+                                                await FirebaseFirestore.instance.collection('users').doc(userId).update({'dietPlan': plan});
+                                                Navigator.pop(context); // Close details
+                                                Navigator.pop(context); // Close list
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(content: Text('Diet plan updated to "$plan"'), backgroundColor: Colors.green),
+                                                );
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.yellow[700],
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                              ),
+                                              child: Text(isSelected ? 'Selected' : 'Select this plan', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow[700],
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: Text('Close', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

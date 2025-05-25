@@ -15,6 +15,7 @@ class MemberModel {
   double? longitude;
   double? latitude;
   List<String>? favList;
+  String? dietPlan;
 
   MemberModel({
     this.id,
@@ -29,6 +30,7 @@ class MemberModel {
     this.longitude,
     this.latitude,
     this.favList,
+    this.dietPlan,
   });
 
   factory MemberModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class MemberModel {
       longitude: json['longitude']?.toDouble(),
       latitude: json['latitude']?.toDouble(),
       favList: json['favList'] != null ? List<String>.from(json['favList']) : [],
+      dietPlan: json['dietPlan'],
     );
   }
 
@@ -70,6 +73,7 @@ class MemberModel {
     if (longitude != null) data['longitude'] = longitude;
     if (latitude != null) data['latitude'] = latitude;
     if (favList != null) data['favList'] = favList;
+    if (dietPlan != null) data['dietPlan'] = dietPlan;
     return data;
   }
 
