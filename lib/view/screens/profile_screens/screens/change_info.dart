@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:turathi/core/data_layer.dart';
 import 'package:turathi/view/view_layer.dart';
+import 'package:turathi/core/services/gym_service.dart';
+import 'package:turathi/core/models/member_model.dart';
+import 'package:intl/intl.dart';
 
 //page to change user info
 class ChangeInfo extends StatefulWidget {
@@ -12,8 +15,47 @@ class ChangeInfo extends StatefulWidget {
 
 class _ChangeInfoState extends State<ChangeInfo> {
   String name = "", emailAddress = "", phoneNu = "";
-  SignUpController signUpController = SignUpController();
-  UserService userService = UserService();
+  final GymService _gymService = GymService();
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+  final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
+
+  @override
+  void initState() {
+    super.initState();
+    name = sharedUser.name ?? '';
+    emailAddress = sharedUser.email ?? '';
+    phoneNu = sharedUser.phone ?? '';
+  }
+
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    try {
+      final updatedMember = MemberModel(
+        id: sharedUser.id,
+        name: name,
+        email: emailAddress,
+        phone: phoneNu,
+      );
+      await _gymService.updateMember(updatedMember);
+      // Optionally update sharedUser here if needed
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully!'), backgroundColor: Colors.green),
+        );
+        Navigator.pop(context, true); // Return to profile screen
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating profile: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +83,7 @@ class _ChangeInfoState extends State<ChangeInfo> {
         ),
       ),
       body: Form(
-        key: signUpController.formKey,
+        key: _formKey,
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.only(left: 15.0, right: 15.0),
@@ -64,18 +106,9 @@ class _ChangeInfoState extends State<ChangeInfo> {
                       ),
                     ),
                     TextFormField(
-                      onChanged: (value) {
-                        setState(() {
-                          name = value;
-                        });
-                      },
-                      initialValue: sharedUser.name.toString(),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Name must not be empty';
-                        }
-                        return null;
-                      },
+                      onChanged: (value) => setState(() => name = value),
+                      initialValue: name,
+                      validator: (value) => value!.isEmpty ? 'Name must not be empty' : null,
                       decoration: InputDecoration(
                         counterText: "",
                         focusedBorder: OutlineInputBorder(
@@ -108,24 +141,9 @@ class _ChangeInfoState extends State<ChangeInfo> {
                       ),
                     ),
                     TextFormField(
-                      onChanged: (value) {
-                        setState(() {
-                          emailAddress = value;
-                        });
-                      },
-                      initialValue: sharedUser.email.toString(),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Email must not be empty';
-                        }
-                        bool emailValid = RegExp(
-                                r"^[a-zA-Z0-9.a-zA-Z0-9.1#$&'*+-/=?^_ {|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                            .hasMatch(value);
-                        if (!emailValid) {
-                          return "Enter valid Email";
-                        }
-                        return null;
-                      },
+                      onChanged: (value) => setState(() => emailAddress = value),
+                      initialValue: emailAddress,
+                      validator: (value) => value!.isEmpty ? 'Email must not be empty' : null,
                       decoration: InputDecoration(
                         counterText: "",
                         focusedBorder: OutlineInputBorder(
@@ -158,22 +176,9 @@ class _ChangeInfoState extends State<ChangeInfo> {
                       ),
                     ),
                     TextFormField(
-                      onChanged: (value) {
-                        setState(() {
-                          phoneNu = value;
-                        });
-                      },
-                      initialValue: sharedUser.phone.toString(),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Phone must not be empty';
-                        }
-                        bool phoneExp = RegExp(r'^\d{10}$').hasMatch(value);
-                        if (!phoneExp) {
-                          return 'Phone number is not valid';
-                        }
-                        return null;
-                      },
+                      onChanged: (value) => setState(() => phoneNu = value),
+                      initialValue: phoneNu,
+                      validator: (value) => value!.isEmpty ? 'Phone must not be empty' : null,
                       decoration: InputDecoration(
                         counterText: "",
                         focusedBorder: OutlineInputBorder(
@@ -197,52 +202,35 @@ class _ChangeInfoState extends State<ChangeInfo> {
                     SizedBox(
                       height: LayoutManager.widthNHeight0(context, 1) * 0.085,
                     ),
-                    InkWell(
-                      onTap: () async {
-                        if (signUpController.formKey.currentState!.validate()) {
-                          oldemail = sharedUser.email.toString();
-                          if (name == "") {
-                            name = sharedUser.name.toString();
-                          }
-                          if (emailAddress == "") {
-                            emailAddress = sharedUser.email.toString();
-                          }
-                          if (phoneNu == "") {
-                            phoneNu = sharedUser.phone.toString();
-                          }
-                          
-                          userService.updateUser(sharedUser.id.toString());
-                          sharedUser.name = name;
-                          sharedUser.email = emailAddress;
-                          sharedUser.phone = phoneNu;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text("User Info Updated Successfully")),
-                          );
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: Center(
-                        child: Container(
-                          width: LayoutManager.widthNHeight0(context, 0) * 0.3,
-                          height: LayoutManager.widthNHeight0(context, 0) * .06,
-                          decoration: BoxDecoration(
-                            color: ThemeManager.primary,
-                            borderRadius: BorderRadius.circular(8),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _saveProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ThemeManager.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Center(
-                            child: Text(
-                              "Edit Info",
-                              style: TextStyle(
-                                color: ThemeManager.second,
-                                fontSize: 20,
-                                fontFamily: ThemeManager.fontFamily,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
+                          elevation: 2,
                         ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Text(
+                                'Save Changes',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ],

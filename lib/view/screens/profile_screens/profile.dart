@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:turathi/core/data_layer.dart';
 import 'package:turathi/view/view_layer.dart';
+import 'package:intl/intl.dart';
 
 
 //page that provide actions on his profile and actions in the app
@@ -53,7 +54,13 @@ class _ProfileScreen extends State<ProfileScreen> {
               ),
               SizedBox(height: 8),
               GestureDetector(
-                onTap: () {},
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ChangeInfo()),
+                  );
+                  if (result == true) setState(() {}); // Refresh after edit
+                },
                 child: Text(
                   'Edit Profile',
                   style: TextStyle(color: Colors.blue[300], fontSize: 16, fontWeight: FontWeight.w500),
@@ -64,50 +71,30 @@ class _ProfileScreen extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _infoCard('Age', '32 years'),
-                  _infoCard('Height', "5'11\" (180 cm)"),
+                  _infoCard('Membership Type', sharedUser.membershipType ?? 'N/A'),
+                  _infoCard('Reg. Number', sharedUser.registrationNumber ?? 'N/A'),
                 ],
               ),
               SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _infoCard('Weight', '175 lbs (79.4 kg)'),
-                  _infoCard('BMI', '24.3 (Healthy)'),
+                  _infoCard('Phone', sharedUser.phone ?? 'N/A'),
+                  _infoCard('Email', sharedUser.email ?? 'N/A'),
                 ],
               ),
               SizedBox(height: 24),
-              // Fitness Statistics
+              // Membership Period
               Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Fitness Statistics', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-              ),
-              SizedBox(height: 12),
-              _statBar('Body Fat', 0.18, '18%'),
-              SizedBox(height: 12),
-              _statBar('Muscle Mass', 0.42, '42%'),
-              SizedBox(height: 12),
-              _statBar('Water', 0.65, '65%'),
-              SizedBox(height: 24),
-              // Body Measurements
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Body Measurements', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                child: Text('Membership Period', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
               ),
               SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _infoCard('Chest', '42 inches'),
-                  _infoCard('Waist', '34 inches'),
-                ],
-              ),
-              SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _infoCard('Arms', '15 inches'),
-                  _infoCard('Legs', '22 inches'),
+                  _infoCard('Join Date', sharedUser.joinDate != null ? DateFormat('yyyy-MM-dd').format(sharedUser.joinDate!) : 'N/A'),
+                  _infoCard('Expiry Date', sharedUser.expiryDate != null ? DateFormat('yyyy-MM-dd').format(sharedUser.expiryDate!) : 'N/A'),
                 ],
               ),
               SizedBox(height: 24),
