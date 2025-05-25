@@ -374,9 +374,28 @@ class GymService {
   // Workout Schedules
   Future<void> addWorkoutSchedule(WorkoutScheduleModel schedule) async {
     try {
-      final doc = await _firestore.collection('workout_schedules').add(schedule.toJson());
+      log('Adding workout schedule for member: ${schedule.memberId}');
+      // Find member document by querying the id field
+      final memberQuery = await _firestore
+          .collection('users')
+          .where('id', isEqualTo: schedule.memberId)
+          .get();
+      if (memberQuery.docs.isEmpty) {
+        throw Exception('Member with ID ${schedule.memberId} does not exist');
+      }
+      final memberDoc = memberQuery.docs.first;
+      // Add schedule to the member's workout_schedules subcollection
+      final doc = await _firestore
+          .collection('users')
+          .doc(memberDoc.id)
+          .collection('workout_schedules')
+          .add(schedule.toJson());
+      // Update the document with its ID
       await doc.update({'id': doc.id});
-      log('Successfully added workout schedule for member: ${schedule.memberId}');
+      log('Successfully added workout schedule:');
+      log('  ID: ${doc.id}');
+      log('  Member ID: ${schedule.memberId}');
+      log('  Workout Type: ${schedule.workoutType}');
     } catch (e, stackTrace) {
       log('Error adding workout schedule: $e', error: e, stackTrace: stackTrace);
       rethrow;
@@ -385,12 +404,37 @@ class GymService {
 
   Future<List<WorkoutScheduleModel>> getMemberWorkoutSchedules(String memberId) async {
     try {
-      final snapshot = await _firestore
-          .collection('workout_schedules')
-          .where('memberId', isEqualTo: memberId)
-          .where('isActive', isEqualTo: true)
+      log('=== Getting Workout Schedules ===');
+      log('Member ID to query: $memberId');
+      
+      // Find member document by querying the id field
+      final memberQuery = await _firestore
+          .collection('users')
+          .where('id', isEqualTo: memberId)
           .get();
-      return snapshot.docs.map((doc) => WorkoutScheduleModel.fromJson(doc.data())).toList();
+      
+      if (memberQuery.docs.isEmpty) {
+        log('WARNING: Member with ID $memberId not found');
+        return [];
+      }
+      
+      final memberDoc = memberQuery.docs.first;
+      log('Found member document:');
+      log('  Document ID: ${memberDoc.id}');
+      log('  Member Data: ${memberDoc.data()}');
+      
+      // Get all schedules from the member's workout_schedules subcollection
+      log('Querying workout_schedules subcollection...');
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(memberDoc.id)  // Use the document ID here
+          .collection('workout_schedules')
+          .get();
+      
+      log('Query returned ${snapshot.docs.length} documents');
+      
+      // Process and return the schedules
+      return _processScheduleDocuments(snapshot.docs);
     } catch (e, stackTrace) {
       log('Error getting member workout schedules: $e', error: e, stackTrace: stackTrace);
       rethrow;
@@ -399,39 +443,179 @@ class GymService {
 
   Future<void> updateWorkoutSchedule(WorkoutScheduleModel schedule) async {
     try {
-      await _firestore.collection('workout_schedules').doc(schedule.id).update(schedule.toJson());
-      log('Successfully updated workout schedule: ${schedule.id}');
+      log('Updating workout schedule: ${schedule.id}');
+      // Find member document by querying the id field
+      final memberQuery = await _firestore
+          .collection('users')
+          .where('id', isEqualTo: schedule.memberId)
+          .get();
+      if (memberQuery.docs.isEmpty) {
+        throw Exception('Member with ID ${schedule.memberId} does not exist');
+      }
+      final memberDoc = memberQuery.docs.first;
+      // Verify schedule exists
+      final scheduleDoc = await _firestore
+          .collection('users')
+          .doc(memberDoc.id)
+          .collection('workout_schedules')
+          .doc(schedule.id)
+          .get();
+      if (!scheduleDoc.exists) {
+        throw Exception('Schedule with ID ${schedule.id} does not exist');
+      }
+      // Update schedule
+      await _firestore
+          .collection('users')
+          .doc(memberDoc.id)
+          .collection('workout_schedules')
+          .doc(schedule.id)
+          .update(schedule.toJson());
+      log('Successfully updated workout schedule:');
+      log('  ID: ${schedule.id}');
+      log('  Member ID: ${schedule.memberId}');
+      log('  Workout Type: ${schedule.workoutType}');
     } catch (e, stackTrace) {
       log('Error updating workout schedule: $e', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
 
-  Future<void> deleteWorkoutSchedule(String id) async {
+  Future<void> deleteWorkoutSchedule(String memberId, String scheduleId) async {
     try {
-      await _firestore.collection('workout_schedules').doc(id).delete();
-      log('Successfully deleted workout schedule: $id');
+      log('Deleting workout schedule: $scheduleId for member: $memberId');
+      // Find member document by querying the id field
+      final memberQuery = await _firestore
+          .collection('users')
+          .where('id', isEqualTo: memberId)
+          .get();
+      if (memberQuery.docs.isEmpty) {
+        throw Exception('Member with ID $memberId does not exist');
+      }
+      final memberDoc = memberQuery.docs.first;
+      // Verify schedule exists
+      final scheduleDoc = await _firestore
+          .collection('users')
+          .doc(memberDoc.id)
+          .collection('workout_schedules')
+          .doc(scheduleId)
+          .get();
+      if (!scheduleDoc.exists) {
+        throw Exception('Schedule with ID $scheduleId does not exist');
+      }
+      // Delete schedule
+      await _firestore
+          .collection('users')
+          .doc(memberDoc.id)
+          .collection('workout_schedules')
+          .doc(scheduleId)
+          .delete();
+      log('Successfully deleted workout schedule: $scheduleId');
     } catch (e, stackTrace) {
       log('Error deleting workout schedule: $e', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
 
-  Future<void> deactivateWorkoutSchedule(String id) async {
+  Future<void> deactivateWorkoutSchedule(String memberId, String scheduleId) async {
     try {
-      await _firestore.collection('workout_schedules').doc(id).update({'isActive': false});
-      log('Successfully deactivated workout schedule: $id');
+      log('Deactivating workout schedule: $scheduleId for member: $memberId');
+      // Find member document by querying the id field
+      final memberQuery = await _firestore
+          .collection('users')
+          .where('id', isEqualTo: memberId)
+          .get();
+      if (memberQuery.docs.isEmpty) {
+        throw Exception('Member with ID $memberId does not exist');
+      }
+      final memberDoc = memberQuery.docs.first;
+      // Verify schedule exists
+      final scheduleDoc = await _firestore
+          .collection('users')
+          .doc(memberDoc.id)
+          .collection('workout_schedules')
+          .doc(scheduleId)
+          .get();
+      if (!scheduleDoc.exists) {
+        throw Exception('Schedule with ID $scheduleId does not exist');
+      }
+      // Deactivate schedule
+      await _firestore
+          .collection('users')
+          .doc(memberDoc.id)
+          .collection('workout_schedules')
+          .doc(scheduleId)
+          .update({'isActive': false});
+      log('Successfully deactivated workout schedule: $scheduleId');
     } catch (e, stackTrace) {
       log('Error deactivating workout schedule: $e', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
 
+  // Helper method to process schedule documents
+  List<WorkoutScheduleModel> _processScheduleDocuments(List<QueryDocumentSnapshot> docs) {
+    // Log raw document data
+    for (var doc in docs) {
+      log('Raw Schedule Document:');
+      log('  Document ID: ${doc.id}');
+      log('  Data: ${doc.data()}');
+    }
+    
+    // Convert to models and log details
+    final schedules = docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      data['id'] = doc.id; // Ensure ID is set
+      log('Converting document to model:');
+      log('  Document ID: ${doc.id}');
+      log('  Raw Data: $data');
+      
+      try {
+        final schedule = WorkoutScheduleModel.fromJson(data);
+        log('Successfully converted to model:');
+        log('  ID: ${schedule.id}');
+        log('  Member ID: ${schedule.memberId}');
+        log('  Workout Type: ${schedule.workoutType}');
+        log('  Trainer ID: ${schedule.trainerId}');
+        log('  Start Time: ${schedule.startTime}');
+        log('  End Time: ${schedule.endTime}');
+        log('  Days: ${schedule.daysOfWeek}');
+        log('  Is Active: ${schedule.isActive}');
+        return schedule;
+      } catch (e, stackTrace) {
+        log('Error converting document to model: $e', error: e, stackTrace: stackTrace);
+        rethrow;
+      }
+    }).toList();
+    
+    log('Successfully converted ${schedules.length} schedules to models');
+    return schedules;
+  }
+
   Future<void> updateWorkoutScheduleMemberId(String scheduleId, String newMemberId) async {
     try {
+      log('Updating workout schedule memberId: $scheduleId to $newMemberId');
+      
+      // Verify schedule exists
+      final scheduleDoc = await _firestore.collection('workout_schedules').doc(scheduleId).get();
+      if (!scheduleDoc.exists) {
+        throw Exception('Schedule with ID $scheduleId does not exist');
+      }
+      
+      // Verify new member exists by querying for their ID field
+      final memberQuery = await _firestore
+          .collection('users')
+          .where('id', isEqualTo: newMemberId)
+          .get();
+      
+      if (memberQuery.docs.isEmpty) {
+        throw Exception('Member with ID $newMemberId does not exist');
+      }
+      
+      // Update memberId
       await _firestore.collection('workout_schedules').doc(scheduleId).update({
         'memberId': newMemberId
       });
+      
       log('Successfully updated workout schedule memberId: $scheduleId to $newMemberId');
     } catch (e, stackTrace) {
       log('Error updating workout schedule memberId: $e', error: e, stackTrace: stackTrace);

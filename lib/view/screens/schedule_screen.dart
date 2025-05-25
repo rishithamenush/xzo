@@ -24,87 +24,106 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   void initState() {
     super.initState();
-    print("Current user UID: \\${_auth.currentUser?.uid}");
-    _updateScheduleMemberId();
+    log('Initializing ScheduleScreen');
+    log('Current user UID: ${_auth.currentUser?.uid}');
     _loadData();
-  }
-
-  Future<void> _updateScheduleMemberId() async {
-    try {
-      final userId = _auth.currentUser?.uid;
-      if (userId == null) return;
-
-      // Get all schedules
-      final snapshot = await FirebaseFirestore.instance.collection('workout_schedules').get();
-      final schedules = snapshot.docs.map((doc) => WorkoutScheduleModel.fromJson(doc.data())).toList();
-
-      // Find schedules with non-Firebase Auth UIDs (they are typically 28 characters long)
-      for (var schedule in schedules) {
-        if (schedule.memberId.length != 28) {  // Firebase Auth UIDs are 28 characters
-          print("Updating schedule ${schedule.id} from memberId ${schedule.memberId} to $userId");
-          await _gymService.updateWorkoutScheduleMemberId(schedule.id!, userId);
-          print("Successfully updated schedule memberId");
-        }
-      }
-
-      // Reload schedules after updating
-      await _loadData();
-    } catch (e) {
-      print("Error updating schedule memberId: $e");
-    }
   }
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
       final userId = _auth.currentUser?.uid;
-      print("=== User Authentication Info ===");
-      print("Current logged in user ID: $userId");
-      print("Current user email: ${_auth.currentUser?.email}");
-      print("Current user display name: ${_auth.currentUser?.displayName}");
-      print("==============================");
-
-      // Fetch ALL workout schedules
-      final snapshot = await FirebaseFirestore.instance.collection('workout_schedules').get();
-      final allSchedules = snapshot.docs
-          .map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id; // Make sure to include the document ID
-            return WorkoutScheduleModel.fromJson(data);
-          })
-          .toList();
-
-      print("=== Schedule Information ===");
-      print("Total schedules in database: ${allSchedules.length}");
-      for (var schedule in allSchedules) {
-        print("Schedule ID: ${schedule.id}");
-        print("Member ID: ${schedule.memberId}");
-        print("Workout Type: ${schedule.workoutType}");
-        print("Is Active: ${schedule.isActive}");
-        print("------------------------");
+      if (userId == null) {
+        throw Exception('No user is currently logged in');
       }
 
-      // Filter schedules for the current user
-      _workoutSchedules = allSchedules.where((s) => s.memberId == userId).toList();
-      print("=== Filtered Schedules ===");
-      print("Number of schedules for current user: ${_workoutSchedules.length}");
-      print("=========================");
-
+      log('=== Loading Schedule Data ===');
+      log('User ID: $userId');
+      log('User Email: ${_auth.currentUser?.email}');
+      
+      // Get schedules using GymService
+      log('Fetching schedules from GymService...');
+      _workoutSchedules = await _gymService.getMemberWorkoutSchedules(userId);
+      log('Raw schedules from GymService: ${_workoutSchedules.length}');
+      
+      // Log each schedule's raw data
+      for (var schedule in _workoutSchedules) {
+        log('Raw Schedule Data:');
+        log('  Document ID: ${schedule.id}');
+        log('  Member ID: ${schedule.memberId}');
+        log('  Workout Type: ${schedule.workoutType}');
+        log('  Trainer ID: ${schedule.trainerId}');
+        log('  Start Time: ${schedule.startTime}');
+        log('  End Time: ${schedule.endTime}');
+        log('  Days: ${schedule.daysOfWeek}');
+        log('  Is Active: ${schedule.isActive}');
+        log('  Notes: ${schedule.notes}');
+        log('------------------------');
+      }
+      
+      // Get trainers
+      log('Fetching trainers...');
       _trainers = await _gymService.getTrainers();
-    } catch (e) {
-      log('Error loading workout schedules: $e');
+      log('Loaded trainers: ${_trainers.length}');
+      
+      // Log trainer details
+      for (var trainer in _trainers) {
+        log('Trainer: ${trainer.name} (ID: ${trainer.id}, Specialty: ${trainer.specialty})');
+      }
+
+      // Verify schedule filtering
+      final todaysSchedules = _getSchedulesForDay(DateTime.now());
+      log('=== Schedule Filtering ===');
+      log('Total schedules: ${_workoutSchedules.length}');
+      log('Active schedules: ${_workoutSchedules.where((s) => s.isActive).length}');
+      log('Today\'s schedules: ${todaysSchedules.length}');
+      log('Current day: ${DateFormat('EEEE').format(DateTime.now())}');
+      
+      // Log today's schedules
+      for (var schedule in todaysSchedules) {
+        log('Today\'s Schedule:');
+        log('  Workout Type: ${schedule.workoutType}');
+        log('  Trainer: ${_getTrainerName(schedule.trainerId)}');
+        log('  Time: ${DateFormat('h:mm a').format(schedule.startTime)} - ${DateFormat('h:mm a').format(schedule.endTime)}');
+      }
+
+    } catch (e, stackTrace) {
+      log('Error loading workout schedules: $e', error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading schedule: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error loading schedule: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
         );
       }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
-    setState(() => _isLoading = false);
   }
 
   List<WorkoutScheduleModel> _getSchedulesForDay(DateTime date) {
     final dayName = DateFormat('EEEE').format(date);
-    return _workoutSchedules.where((schedule) => schedule.daysOfWeek.contains(dayName)).toList();
+    log('Getting schedules for day: $dayName');
+    
+    final schedules = _workoutSchedules
+        .where((schedule) => 
+            schedule.isActive && 
+            schedule.daysOfWeek.contains(dayName))
+        .toList();
+    
+    log('Found ${schedules.length} schedules for $dayName');
+    for (var schedule in schedules) {
+      log('Schedule for $dayName:');
+      log('  Workout Type: ${schedule.workoutType}');
+      log('  Days: ${schedule.daysOfWeek.join(", ")}');
+      log('  Is Active: ${schedule.isActive}');
+    }
+    
+    return schedules;
   }
 
   Map<String, List<WorkoutScheduleModel>> _getWeeklySchedules() {
@@ -112,7 +131,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     
     for (var day in days) {
-      weeklySchedules[day] = _workoutSchedules.where((schedule) => schedule.daysOfWeek.contains(day)).toList();
+      weeklySchedules[day] = _workoutSchedules
+          .where((schedule) => 
+              schedule.isActive && 
+              schedule.daysOfWeek.contains(day))
+          .toList();
     }
     
     return weeklySchedules;
@@ -123,6 +146,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       final trainer = _trainers.firstWhere((t) => t.id == trainerId);
       return '${trainer.name} (${trainer.specialty})';
     } catch (e) {
+      log('Error finding trainer: $e');
       return 'Unknown Trainer';
     }
   }
