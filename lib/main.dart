@@ -22,14 +22,10 @@ class MyApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<PlaceProvider>(create: (_) => PlaceProvider()),
-        ChangeNotifierProvider<EventProvider>(create: (_) => EventProvider()),
-        ChangeNotifierProvider<QuestionProvider>(create: (_) => QuestionProvider()),
         ChangeNotifierProvider<NotificationProvider>(create: (_) => NotificationProvider()),
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
         ChangeNotifierProvider<RequestProvider>(create: (_) => RequestProvider()),
-        ChangeNotifierProvider<CommentProvider>(create: (_) => CommentProvider()),
 
       ],
       child: const MaterialApp(

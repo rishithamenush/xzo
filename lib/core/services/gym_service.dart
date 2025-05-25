@@ -3,9 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/member_model.dart';
 import '../models/trainer_model.dart';
 import '../models/class_model.dart';
-import '../models/payment_model.dart';
 import '../models/attendance_model.dart';
-import '../models/announcement_model.dart';
 import '../models/workout_schedule_model.dart';
 import '../models/workout_progress_model.dart';
 import 'dart:developer';
@@ -259,20 +257,6 @@ class GymService {
     await _firestore.collection('classes').doc(id).delete();
   }
 
-  // Payments
-  Future<void> addPayment(PaymentModel payment) async {
-    final doc = await _firestore.collection('payments').add(payment.toJson());
-    await doc.update({'id': doc.id});
-  }
-
-  Future<List<PaymentModel>> getPayments() async {
-    final snapshot = await _firestore.collection('payments').get();
-    return snapshot.docs.map((doc) => PaymentModel.fromJson(doc.data())).toList();
-  }
-
-  Future<void> updatePayment(PaymentModel payment) async {
-    await _firestore.collection('payments').doc(payment.id).update(payment.toJson());
-  }
 
   Future<void> deletePayment(String id) async {
     await _firestore.collection('payments').doc(id).delete();
@@ -297,20 +281,6 @@ class GymService {
     await _firestore.collection('attendance').doc(id).delete();
   }
 
-  // Announcements
-  Future<void> addAnnouncement(AnnouncementModel announcement) async {
-    final doc = await _firestore.collection('announcements').add(announcement.toJson());
-    await doc.update({'id': doc.id});
-  }
-
-  Future<List<AnnouncementModel>> getAnnouncements() async {
-    final snapshot = await _firestore.collection('announcements').get();
-    return snapshot.docs.map((doc) => AnnouncementModel.fromJson(doc.data())).toList();
-  }
-
-  Future<void> updateAnnouncement(AnnouncementModel announcement) async {
-    await _firestore.collection('announcements').doc(announcement.id).update(announcement.toJson());
-  }
 
   Future<void> deleteAnnouncement(String id) async {
     await _firestore.collection('announcements').doc(id).delete();

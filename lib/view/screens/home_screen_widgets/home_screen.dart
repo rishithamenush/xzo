@@ -150,10 +150,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    EventProvider eventProvider = Provider.of<EventProvider>(context);
-    PlaceProvider placeProvider = Provider.of<PlaceProvider>(context);
-    NotificationProvider notificationProvider = Provider.of<NotificationProvider>(context);
-
     // Mock user data
     final String userName = (sharedUser.name != null && sharedUser.name!.trim().isNotEmpty) ? sharedUser.name! : 'User';
     final String userAvatar = "assets/images/img_png/userprof.png"; // Replace with your avatar asset

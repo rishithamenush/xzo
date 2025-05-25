@@ -11,31 +11,6 @@ class NotificationService {
   // notify user if a place is added near them by 10 Km.
   Future<void> notifyUsers(double placeLatitude, double placeLongitude,String placeName) async {
     UserList userList = await _userProvider.userList;
-    for (var user in userList.users.where((element) => element.id!=sharedUser.id)) {
-      // calculate the distance between each user and the added place
-      double distanceInKm =
-      getDistanceInKm(
-            lat1: placeLatitude,
-            lon1: placeLongitude,
-            lat2: user.latitude!,
-            lon2: user.longitude!,
-          );
-      // if distance is less than or equal 10 ,notify user
-      if (distanceInKm <= 10){
-        NotificationModel notificationModel =
-        NotificationModel(text: "$placeName near you is added", userId: user.id);
-
-        // add the notification to database
-        _fireStore
-            .collection(_collectionName)
-            .add(notificationModel.toJson())
-            .whenComplete(() {
-          log("Add Notification Done");
-        });
-      }
-
-
-    }
   }
 
   // get the user notifications from database
