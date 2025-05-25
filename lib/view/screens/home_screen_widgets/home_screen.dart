@@ -158,6 +158,45 @@ class _HomeScreenState extends State<HomeScreen> {
     final String userName = (sharedUser.name != null && sharedUser.name!.trim().isNotEmpty) ? sharedUser.name! : 'User';
     final String userAvatar = "assets/images/img_png/userprof.png"; // Replace with your avatar asset
 
+    // Motivational quotes (30 for each day of the month)
+    final List<String> motivationQuotes = [
+      "Push yourself, because no one else is going to do it for you.",
+      "Success starts with self-discipline.",
+      "The pain you feel today will be the strength you feel tomorrow.",
+      "Don't limit your challenges. Challenge your limits.",
+      "It never gets easier, you just get stronger.",
+      "You don't have to be extreme, just consistent.",
+      "Sweat is fat crying.",
+      "The only bad workout is the one that didn't happen.",
+      "Doubt kills more dreams than failure ever will.",
+      "You are your only limit.",
+      "Don't wish for a good body, work for it.",
+      "No pain, no gain. Shut up and train.",
+      "The body achieves what the mind believes.",
+      "Wake up. Work out. Look hot. Kick ass.",
+      "If it doesn't challenge you, it won't change you.",
+      "Excuses don't burn calories.",
+      "You don't get what you wish for. You get what you work for.",
+      "Discipline is the bridge between goals and accomplishment.",
+      "Don't stop when you're tired. Stop when you're done.",
+      "The difference between try and triumph is a little umph.",
+      "Strive for progress, not perfection.",
+      "A little progress each day adds up to big results.",
+      "It's going to be a journey. It's not a sprint to get in shape.",
+      "You are much stronger than you think.",
+      "Fall in love with taking care of yourself.",
+      "The hardest lift of all is lifting your butt off the couch.",
+      "Don't count the days, make the days count.",
+      "Energy and persistence conquer all things.",
+      "Suffer the pain of discipline or suffer the pain of regret.",
+      "Your only limit is you."
+    ];
+    // Generate a unique quote index for each user each day
+    String userKey = sharedUser.id ?? sharedUser.email ?? sharedUser.name ?? "user";
+    int userHash = userKey.codeUnits.fold(0, (prev, c) => prev + c);
+    final int quoteIndex = (userHash + DateTime.now().day) % motivationQuotes.length;
+    final String todayQuote = motivationQuotes[quoteIndex];
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SingleChildScrollView(
@@ -200,7 +239,42 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             SizedBox(height: 24),
-
+            // Motivation Quote
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 18),
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+              decoration: BoxDecoration(
+                color: Color(0xFF3A0D1F),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.12),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.format_quote, color: Colors.yellow[700], size: 32),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      todayQuote,
+                      style: TextStyle(
+                        color: Colors.yellow[100],
+                        fontSize: 18,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             // Today's Progress Card
             Container(
               width: double.infinity,
