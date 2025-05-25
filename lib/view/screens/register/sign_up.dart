@@ -300,6 +300,10 @@ class _SingUpState extends State<SingUp> {
                                 }
                                 
                                 String result = await _service.addUser(user, signUpController.password.text);
+                                // After registration, set the user.id to the Firebase Auth UID
+                                if (result.length == 28) { // Firebase UID length
+                                  user.id = result;
+                                }
                                 log("Add user result: $result");
                                 
                                 if (result == "Done") {

@@ -1,15 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:developer';
 
 class MemberModel {
+  /// This id should ALWAYS be the Firebase Auth UID
   String? id;
   String? name;
   String? email;
   String? phone;
   String? membershipType;
   String? registrationNumber;
-  String? status;
   DateTime? joinDate;
   DateTime? expiryDate;
+  String? status;
+  double? longitude;
+  double? latitude;
+  List<String>? favList;
 
   MemberModel({
     this.id,
@@ -18,36 +23,53 @@ class MemberModel {
     this.phone,
     this.membershipType,
     this.registrationNumber,
-    this.status = 'active',
     this.joinDate,
     this.expiryDate,
+    this.status,
+    this.longitude,
+    this.latitude,
+    this.favList,
   });
 
   factory MemberModel.fromJson(Map<String, dynamic> json) {
+    log('Creating MemberModel from JSON: $json');
+    
+    // Ensure ID is set
+    String? id = json['id'];
+    if (id == null || id.isEmpty) {
+      log('WARNING: Member JSON missing or empty ID field');
+    }
+    
     return MemberModel(
-      id: json['id'],
+      id: id,
       name: json['name'],
       email: json['email'],
       phone: json['phone'],
       membershipType: json['membershipType'],
       registrationNumber: json['registrationNumber'],
-      status: json['status'] ?? 'active',
       joinDate: json['joinDate'] != null ? (json['joinDate'] as Timestamp).toDate() : null,
       expiryDate: json['expiryDate'] != null ? (json['expiryDate'] as Timestamp).toDate() : null,
+      status: json['status'] ?? 'active', // Default to active if not specified
+      longitude: json['longitude']?.toDouble(),
+      latitude: json['latitude']?.toDouble(),
+      favList: json['favList'] != null ? List<String>.from(json['favList']) : [],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'phone': phone,
-      'membershipType': membershipType,
-      'registrationNumber': registrationNumber,
-      'status': status,
-      'joinDate': joinDate,
-      'expiryDate': expiryDate,
-    };
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (id != null) data['id'] = id;
+    if (name != null) data['name'] = name;
+    if (email != null) data['email'] = email;
+    if (phone != null) data['phone'] = phone;
+    if (membershipType != null) data['membershipType'] = membershipType;
+    if (registrationNumber != null) data['registrationNumber'] = registrationNumber;
+    if (joinDate != null) data['joinDate'] = Timestamp.fromDate(joinDate!);
+    if (expiryDate != null) data['expiryDate'] = Timestamp.fromDate(expiryDate!);
+    if (status != null) data['status'] = status;
+    if (longitude != null) data['longitude'] = longitude;
+    if (latitude != null) data['latitude'] = latitude;
+    if (favList != null) data['favList'] = favList;
+    return data;
   }
 } 

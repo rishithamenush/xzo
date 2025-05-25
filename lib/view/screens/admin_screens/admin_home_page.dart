@@ -7,6 +7,7 @@ import 'trainers_screen.dart';
 import 'classes_screen.dart';
 import 'attendance_screen.dart';
 import 'payments_screen.dart';
+import 'workout_schedules_screen.dart';
 
 //Admin homepage provides actions,data view.
 class AdminHomePage extends StatefulWidget {
@@ -35,6 +36,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
       icon: FontAwesomeIcons.calendarAlt,
       color: Color(0xFF1976D2),
       route: '/admin/classes',
+    ),
+    _AdminAction(
+      label: 'Workout Schedules',
+      icon: FontAwesomeIcons.clipboardList,
+      color: Color(0xFFE65100),
+      route: '/admin/workout-schedules',
     ),
     _AdminAction(
       label: 'Attendance',
@@ -149,6 +156,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
                           } else if (action.label == 'Classes') {
                             Navigator.of(context).push(
                               MaterialPageRoute(builder: (_) => const ClassesScreen()),
+                            );
+                          } else if (action.label == 'Workout Schedules') {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => WorkoutSchedulesScreen()),
                             );
                           } else if (action.label == 'Attendance') {
                             Navigator.of(context).push(

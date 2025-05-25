@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'dart:developer';
 
 import '../../../../core/models/member_model.dart';
+import '../../../../core/models/workout_schedule_model.dart';
+import '../../../../core/models/trainer_model.dart';
 
 class MemberDetailsScreen extends StatefulWidget {
   final MemberModel member;
@@ -35,11 +37,18 @@ class _MemberDetailsScreenState extends State<MemberDetailsScreen> {
   DateTime? _selectedJoinDate;
   DateTime? _selectedExpiryDate;
   final GymService _gymService = GymService();
+  List<WorkoutScheduleModel> _workoutSchedules = [];
+  List<TrainerModel> _trainers = [];
+  bool _isLoadingSchedules = false;
 
   @override
   void initState() {
     super.initState();
     _initializeControllers();
+    if (widget.isAdmin) {
+      _loadWorkoutSchedules();
+      _loadTrainers();
+    }
   }
 
   void _initializeControllers() {
@@ -155,6 +164,216 @@ class _MemberDetailsScreenState extends State<MemberDetailsScreen> {
         }
       }
     }
+  }
+
+  Future<void> _loadWorkoutSchedules() async {
+    if (!widget.isAdmin) return;
+    setState(() => _isLoadingSchedules = true);
+    try {
+      _workoutSchedules = await _gymService.getMemberWorkoutSchedules(widget.member.id!);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading workout schedules: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+    setState(() => _isLoadingSchedules = false);
+  }
+
+  Future<void> _loadTrainers() async {
+    if (!widget.isAdmin) return;
+    try {
+      _trainers = await _gymService.getTrainers();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading trainers: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  void _showAddEditScheduleDialog({WorkoutScheduleModel? schedule}) async {
+    final isEdit = schedule != null;
+    final workoutTypeController = TextEditingController(text: schedule?.workoutType ?? '');
+    final notesController = TextEditingController(text: schedule?.notes ?? '');
+    TrainerModel? selectedTrainer = isEdit ? _trainers.firstWhere((t) => t.id == schedule!.trainerId) : null;
+    TimeOfDay? startTime = isEdit ? TimeOfDay.fromDateTime(schedule!.startTime) : null;
+    TimeOfDay? endTime = isEdit ? TimeOfDay.fromDateTime(schedule!.endTime) : null;
+    List<String> selectedDays = isEdit ? List.from(schedule!.daysOfWeek) : [];
+    final workoutTypes = ['Strength', 'Cardio', 'HIIT', 'Yoga', 'CrossFit', 'Flexibility'];
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.black87,
+        title: Text(
+          isEdit ? 'Edit Workout Schedule' : 'Add Workout Schedule',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Workout Type Dropdown
+              DropdownButtonFormField<String>(
+                value: workoutTypeController.text.isEmpty ? null : workoutTypeController.text,
+                decoration: InputDecoration(
+                  labelText: 'Workout Type',
+                  labelStyle: TextStyle(color: Colors.white70),
+                ),
+                dropdownColor: Colors.black87,
+                style: TextStyle(color: Colors.white),
+                items: workoutTypes.map((type) => DropdownMenuItem(
+                  value: type,
+                  child: Text(type),
+                )).toList(),
+                onChanged: (value) {
+                  if (value != null) workoutTypeController.text = value;
+                },
+              ),
+              SizedBox(height: 16),
+              // Trainer Dropdown
+              DropdownButtonFormField<TrainerModel>(
+                value: selectedTrainer,
+                decoration: InputDecoration(
+                  labelText: 'Trainer',
+                  labelStyle: TextStyle(color: Colors.white70),
+                ),
+                dropdownColor: Colors.black87,
+                style: TextStyle(color: Colors.white),
+                items: _trainers.map((trainer) => DropdownMenuItem(
+                  value: trainer,
+                  child: Text('${trainer.name} (${trainer.specialty})'),
+                )).toList(),
+                onChanged: (value) => selectedTrainer = value,
+              ),
+              SizedBox(height: 16),
+              // Time Pickers
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton.icon(
+                      icon: Icon(Icons.access_time, color: Colors.white70),
+                      label: Text(
+                        startTime != null ? DateFormat('h:mm a').format(DateTime(2024, 1, 1, startTime!.hour, startTime !.minute)) : 'Start Time',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                      onPressed: () async {
+                        final time = await showTimePicker(
+                          context: context,
+                          initialTime: startTime ?? TimeOfDay.now(),
+                        );
+                        if (time != null) startTime = time;
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: TextButton.icon(
+                      icon: Icon(Icons.access_time, color: Colors.white70),
+                      label: Text(
+                        endTime != null ? DateFormat('h:mm a').format(DateTime(2024, 1, 1, endTime!.hour, endTime!.minute)) : 'End Time',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                      onPressed: () async {
+                        final time = await showTimePicker(
+                          context: context,
+                          initialTime: endTime ?? TimeOfDay.now(),
+                        );
+                        if (time != null) endTime = time;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              // Days Selection
+              Wrap(
+                spacing: 8,
+                children: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) {
+                  final isSelected = selectedDays.contains(day);
+                  return FilterChip(
+                    label: Text(day.substring(0, 3)),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          selectedDays.add(day);
+                        } else {
+                          selectedDays.remove(day);
+                        }
+                      });
+                    },
+                    backgroundColor: Colors.black54,
+                    selectedColor: Colors.yellow[800],
+                    checkmarkColor: Colors.black,
+                    labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.white),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 16),
+              // Notes
+              TextField(
+                controller: notesController,
+                decoration: InputDecoration(
+                  labelText: 'Notes',
+                  labelStyle: TextStyle(color: Colors.white70),
+                ),
+                style: TextStyle(color: Colors.white),
+                maxLines: 2,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: Text('Cancel', style: TextStyle(color: Colors.white70)),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow[800]),
+            child: Text(isEdit ? 'Update' : 'Add', style: TextStyle(color: Colors.black)),
+            onPressed: () async {
+              if (workoutTypeController.text.isEmpty || selectedTrainer == null || startTime == null || endTime == null || selectedDays.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Please fill all required fields'), backgroundColor: Colors.red),
+                );
+                return;
+              }
+              final now = DateTime.now();
+              final start = DateTime(now.year, now.month, now.day, startTime!.hour, startTime!.minute);
+              final end = DateTime(now.year, now.month, now.day, endTime!.hour, endTime!.minute);
+              final newSchedule = WorkoutScheduleModel(
+                id: schedule?.id,
+                memberId: widget.member.id!,
+                workoutType: workoutTypeController.text.trim(),
+                trainerId: selectedTrainer!.id!,
+                startTime: start,
+                endTime: end,
+                daysOfWeek: List.from(selectedDays),
+                notes: notesController.text.trim(),
+              );
+              try {
+                if (isEdit) {
+                  await _gymService.updateWorkoutSchedule(newSchedule);
+                } else {
+                  await _gymService.addWorkoutSchedule(newSchedule);
+                }
+                Navigator.pop(context);
+                await _loadWorkoutSchedules();
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error saving schedule: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildInfoCard({

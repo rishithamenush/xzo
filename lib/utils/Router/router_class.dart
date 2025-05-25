@@ -3,6 +3,7 @@ import '../../core/data_layer.dart';
 import '../../core/models/car.dart';
 import '../../core/models/guide.dart';
 import '../../view/view_layer.dart';
+import '../../view/screens/admin_screens/workout_schedules_screen.dart';
 
 // Class responsible for generating routes in the application
 class MyRouter {
@@ -189,6 +190,10 @@ class MyRouter {
         return _route(CarDetailsScreen(car: arg));
       case carsAdminRoute:
         return _route(const AdminCarsScreen());
+      case workoutSchedulesAdminRoute:
+        {
+          return _route(WorkoutSchedulesScreen());
+        }
       default:
         {
           final arg = settings.name as String;

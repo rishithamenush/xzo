@@ -23,12 +23,16 @@ class UserService {
       );
       log("Firebase Auth user created successfully: ${userCredential.user?.uid}");
 
-      // Then add user to Firestore
-      DocumentReference docRef = await _fireStore
+      // Set the user's ID to their Firebase Auth UID
+      model.id = userCredential.user!.uid;
+
+      // Then add user to Firestore with the Firebase Auth UID as document ID
+      await _fireStore
           .collection(_collectionName)
-          .add(model.toJson());
+          .doc(userCredential.user!.uid)
+          .set(model.toJson());
       
-      log("User added to Firestore successfully with ID: ${docRef.id}");
+      log("User added to Firestore successfully with ID: ${model.id}");
       return "Done";
     } on FirebaseAuthException catch (e) {
       log("Firebase Auth Error: ${e.code} - ${e.message}");

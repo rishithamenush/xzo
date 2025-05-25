@@ -6,6 +6,7 @@ import '../models/class_model.dart';
 import '../models/payment_model.dart';
 import '../models/attendance_model.dart';
 import '../models/announcement_model.dart';
+import '../models/workout_schedule_model.dart';
 import 'dart:developer';
 
 class GymService {
@@ -24,9 +25,13 @@ class GymService {
       );
       log('Created Firebase Auth user: ${userCredential.user?.uid}');
 
+      // Set the member's id to the Firebase Auth UID
+      final String firebaseUid = userCredential.user!.uid;
+      member.id = firebaseUid;
+
       // Convert MemberModel to user data
       final userData = {
-        'id': userCredential.user!.uid, // Use the Firebase Auth UID
+        'id': firebaseUid, // Use the Firebase Auth UID
         'name': member.name,
         'email': member.email,
         'phone': member.phone,
@@ -42,12 +47,12 @@ class GymService {
       
       log('User data to add: $userData');
       
-      // Add user data to Firestore
-      await _firestore.collection('users').doc(userCredential.user!.uid).set(userData);
-      log('Created new user document with ID: ${userCredential.user!.uid}');
+      // Add user data to Firestore with UID as document ID
+      await _firestore.collection('users').doc(firebaseUid).set(userData);
+      log('Created new user document with ID: $firebaseUid');
       
-      log('Successfully added member: ${member.name} (ID: ${userCredential.user!.uid})');
-      return 'Success';
+      log('Successfully added member: ${member.name} (ID: $firebaseUid)');
+      return firebaseUid;
     } on FirebaseAuthException catch (e) {
       log('Firebase Auth Error: ${e.code} - ${e.message}');
       String errorMessage = "An error occurred during member registration.";
@@ -141,64 +146,43 @@ class GymService {
         return [];
       }
 
-      // Log raw data from each document
-      for (var doc in snapshot.docs) {
-        log('Document ID: ${doc.id}');
-        log('Raw document data: ${doc.data().toString()}');
-        log('Document exists: ${doc.exists}');
-        log('Document metadata: ${doc.metadata.toString()}');
-      }
+      List<MemberModel> members = [];
       
-      final members = snapshot.docs.map((doc) {
+      // Process each document
+      for (var doc in snapshot.docs) {
         try {
+          log('Processing document ID: ${doc.id}');
           final data = doc.data();
-          if (data.isEmpty) {
-            log('WARNING: Empty document data for document ID: ${doc.id}');
-            return null;
+          
+          // Ensure the document has an ID field
+          if (!data.containsKey('id')) {
+            log('WARNING: Document ${doc.id} missing id field, using document ID instead');
+            data['id'] = doc.id;
           }
           
-          // Convert user data to member data
-          final memberData = {
-            'id': doc.id,
-            'name': data['name'],
-            'email': data['email'],
-            'phone': data['phone'],
-            'membershipType': data['membershipType'],
-            'registrationNumber': data['registrationNumber'],
-            'status': 'active', // Default status
-            'joinDate': data['joinDate'],
-            'expiryDate': data['expiryDate'],
-          };
+          // Log the data before conversion
+          log('Document data before conversion: $data');
           
-          log('Converting user document ${doc.id} to MemberModel with data: ${memberData.toString()}');
+          final member = MemberModel.fromJson(data);
           
-          final member = MemberModel.fromJson(memberData);
-          log('Successfully converted member: ${member.name} (ID: ${member.id})');
-          log('Member details - Status: ${member.status}, Join Date: ${member.joinDate}, Expiry Date: ${member.expiryDate}');
-          return member;
+          // Verify the member ID is set
+          if (member.id == null || member.id!.isEmpty) {
+            log('WARNING: Member ${member.name} has no ID, using document ID: ${doc.id}');
+            member.id = doc.id;
+          }
+          
+          log('Successfully created member model: ${member.name} with ID: ${member.id}');
+          members.add(member);
         } catch (e, stackTrace) {
-          log('ERROR converting document ${doc.id} to MemberModel: $e', error: e, stackTrace: stackTrace);
-          log('Problematic document data: ${doc.data().toString()}');
-          return null;
+          log('Error processing document ${doc.id}: $e', error: e, stackTrace: stackTrace);
+          // Continue processing other documents
         }
-      })
-      .where((member) => member != null) // Filter out any failed conversions
-      .cast<MemberModel>() // Cast back to MemberModel
-      .toList();
-      
-      log('Successfully converted ${members.length} members out of ${snapshot.docs.length} documents');
-      
-      // Log final member list
-      for (var member in members) {
-        log('Final member list - Name: ${member.name}, ID: ${member.id}, Status: ${member.status}, Join Date: ${member.joinDate}, Expiry Date: ${member.expiryDate}');
       }
       
+      log('Successfully processed ${members.length} members');
       return members;
     } catch (e, stackTrace) {
-      log('ERROR in getMembers(): $e', error: e, stackTrace: stackTrace);
-      if (e is FirebaseException) {
-        log('Firebase error code: ${e.code}, message: ${e.message}');
-      }
+      log('Error in getMembers(): $e', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -384,6 +368,74 @@ class GymService {
     } catch (e, stackTrace) {
       log('Error fetching daily attendance: $e', error: e, stackTrace: stackTrace);
       return {};
+    }
+  }
+
+  // Workout Schedules
+  Future<void> addWorkoutSchedule(WorkoutScheduleModel schedule) async {
+    try {
+      final doc = await _firestore.collection('workout_schedules').add(schedule.toJson());
+      await doc.update({'id': doc.id});
+      log('Successfully added workout schedule for member: ${schedule.memberId}');
+    } catch (e, stackTrace) {
+      log('Error adding workout schedule: $e', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
+
+  Future<List<WorkoutScheduleModel>> getMemberWorkoutSchedules(String memberId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('workout_schedules')
+          .where('memberId', isEqualTo: memberId)
+          .where('isActive', isEqualTo: true)
+          .get();
+      return snapshot.docs.map((doc) => WorkoutScheduleModel.fromJson(doc.data())).toList();
+    } catch (e, stackTrace) {
+      log('Error getting member workout schedules: $e', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
+
+  Future<void> updateWorkoutSchedule(WorkoutScheduleModel schedule) async {
+    try {
+      await _firestore.collection('workout_schedules').doc(schedule.id).update(schedule.toJson());
+      log('Successfully updated workout schedule: ${schedule.id}');
+    } catch (e, stackTrace) {
+      log('Error updating workout schedule: $e', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteWorkoutSchedule(String id) async {
+    try {
+      await _firestore.collection('workout_schedules').doc(id).delete();
+      log('Successfully deleted workout schedule: $id');
+    } catch (e, stackTrace) {
+      log('Error deleting workout schedule: $e', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
+
+  Future<void> deactivateWorkoutSchedule(String id) async {
+    try {
+      await _firestore.collection('workout_schedules').doc(id).update({'isActive': false});
+      log('Successfully deactivated workout schedule: $id');
+    } catch (e, stackTrace) {
+      log('Error deactivating workout schedule: $e', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
+
+  Future<void> updateWorkoutScheduleMemberId(String scheduleId, String newMemberId) async {
+    try {
+      await _firestore.collection('workout_schedules').doc(scheduleId).update({
+        'memberId': newMemberId
+      });
+      log('Successfully updated workout schedule memberId: $scheduleId to $newMemberId');
+    } catch (e, stackTrace) {
+      log('Error updating workout schedule memberId: $e', error: e, stackTrace: stackTrace);
+      rethrow;
     }
   }
 } 

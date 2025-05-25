@@ -57,6 +57,7 @@ const String allReportsAdminRoute = '/signInAdmin/home/allReportsAdminRoute';
 const String placeReportsAdminRoute = '/signInAdmin/home/allReportsAdminRoute/PlaceReportsScreen';
 const String requestsAdminRoute = '/signInAdmin/home/requestsAdminRoute';
 const String requestPDFViewAdminRoute = '/signInAdmin/home/requestPDFViewAdminRoute';
+const String workoutSchedulesAdminRoute = '/signInAdmin/home/workout-schedules';
 
 // Routes for admin managing places and events
 const String placesAdminRoute = '/signInAdmin/home/placesAdmin';

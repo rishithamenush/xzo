@@ -34,8 +34,7 @@ class UserModel {
     this.expiryDate,
   }) {
     role = UsersRole.user.name;
-    id = uuid.v4();
-    favList=[];
+    favList = [];
   }
 
 //This is a factory Constructor to create UserModel instance from JSON obj
