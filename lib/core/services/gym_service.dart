@@ -686,4 +686,53 @@ class GymService {
       .doc(progressId)
       .delete();
   }
+
+  // Points logic
+  Future<void> incrementUserPoints(String userId, int points) async {
+    final userQuery = await _firestore.collection('users').where('id', isEqualTo: userId).get();
+    if (userQuery.docs.isEmpty) throw Exception('User with ID $userId not found');
+    final userDoc = userQuery.docs.first;
+    final docRef = _firestore.collection('users').doc(userDoc.id);
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(docRef);
+      final currentPoints = (snapshot.data()?['points'] ?? 0) as int;
+      transaction.update(docRef, {'points': currentPoints + points});
+    });
+  }
+
+  Future<int> getUserPoints(String userId) async {
+    final userQuery = await _firestore.collection('users').where('id', isEqualTo: userId).get();
+    if (userQuery.docs.isEmpty) return 0;
+    final userDoc = userQuery.docs.first;
+    final data = userDoc.data();
+    return (data['points'] ?? 0) as int;
+  }
+
+  Future<List<Map<String, dynamic>>> getWeeklyLeaderboard() async {
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final usersSnapshot = await _firestore.collection('users').get();
+    List<Map<String, dynamic>> leaderboard = [];
+    for (final userDoc in usersSnapshot.docs) {
+      final userId = userDoc['id'];
+      final name = userDoc['name'] ?? '';
+      int weeklyPoints = 0;
+      final schedulesSnapshot = await _firestore.collection('users').doc(userDoc.id).collection('workout_schedules').get();
+      for (final scheduleDoc in schedulesSnapshot.docs) {
+        final progressSnapshot = await _firestore.collection('users').doc(userDoc.id).collection('workout_schedules').doc(scheduleDoc.id).collection('progress').get();
+        for (final progressDoc in progressSnapshot.docs) {
+          final data = progressDoc.data();
+          if (data['status'] == 'completed') {
+            final date = (data['date'] as Timestamp).toDate();
+            if (date.isAfter(startOfWeek.subtract(const Duration(days: 1))) && date.isBefore(now.add(const Duration(days: 1)))) {
+              weeklyPoints += 10; // 10 points per completion
+            }
+          }
+        }
+      }
+      leaderboard.add({'userId': userId, 'name': name, 'points': weeklyPoints});
+    }
+    leaderboard.sort((a, b) => b['points'].compareTo(a['points']));
+    return leaderboard;
+  }
 } 

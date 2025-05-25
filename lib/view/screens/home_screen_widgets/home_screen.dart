@@ -6,6 +6,10 @@ import 'package:turathi/core/data_layer.dart';
 import 'package:turathi/core/models/notification_model.dart';
 import 'package:turathi/view/view_layer.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:turathi/core/services/gym_service.dart';
+import 'package:turathi/core/models/workout_progress_model.dart';
+import 'package:intl/intl.dart';
 
 //user home page includes popular places,events,notifications and, actions such as:adding place,navigate through the app
 class HomeScreen extends StatefulWidget {
@@ -21,10 +25,28 @@ class _HomeScreenState extends State<HomeScreen> {
   UserService userService = UserService();
   String _greeting = '';
 
+  final GymService _gymService = GymService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  int _todayCompleted = 0;
+  int _todayPoints = 0;
+  int _todayGoal = 3; // You can set this as needed
+  double _todayPercent = 0.0;
+  List<Map<String, dynamic>> _leaderboard = [];
+  bool _loadingProgress = true;
+  int _todaySteps = 0;
+  int _todayCalories = 0;
+  int _todayActiveMinutes = 0;
+  double _gymCapacityPercent = 0.0;
+  int _gymCapacityCount = 0;
+  int _maxCapacity = 30; // Set your gym's max capacity here
+
   @override
   void initState() {
     super.initState();
     _setGreeting();
+    _loadProgressData();
+    _loadLeaderboard();
+    _loadGymCapacity();
   }
 
   void _setGreeting() {
@@ -40,6 +62,84 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       setState(() {
         _greeting = 'Good Evening';
+      });
+    }
+  }
+
+  Future<void> _loadProgressData() async {
+    setState(() => _loadingProgress = true);
+    try {
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) return;
+      // Fetch all schedules
+      final schedules = await _gymService.getMemberWorkoutSchedules(userId);
+      // Fetch all progress for today
+      int completed = 0;
+      int totalSteps = 0;
+      int totalCalories = 0;
+      int totalActiveMinutes = 0;
+      for (final schedule in schedules) {
+        final progressList = await _gymService.getWorkoutProgressList(userId, schedule.id!);
+        final completedToday = progressList.where((p) =>
+          p.status == 'completed' && DateUtils.isSameDay(p.date, DateTime.now())).toList();
+        completed += completedToday.length;
+        for (final p in completedToday) {
+          final duration = schedule.endTime.difference(schedule.startTime).inMinutes;
+          totalActiveMinutes += duration;
+          // Estimate steps and calories (customize as needed)
+          totalSteps += (duration * 70); // e.g., 70 steps per minute
+          totalCalories += (duration * 6); // e.g., 6 kcal per minute
+        }
+      }
+      final points = await _gymService.getUserPoints(userId);
+      setState(() {
+        _todayCompleted = completed;
+        _todayPoints = completed * 10;
+        _todayPercent = _todayGoal > 0 ? (completed / _todayGoal).clamp(0, 1) : 0.0;
+        _todaySteps = totalSteps;
+        _todayCalories = totalCalories;
+        _todayActiveMinutes = totalActiveMinutes;
+        _loadingProgress = false;
+      });
+    } catch (e) {
+      setState(() => _loadingProgress = false);
+    }
+  }
+
+  Future<void> _loadLeaderboard() async {
+    final leaderboard = await _gymService.getWeeklyLeaderboard();
+    setState(() {
+      _leaderboard = leaderboard.take(3).toList();
+    });
+  }
+
+  Future<void> _loadGymCapacity() async {
+    try {
+      final members = await _gymService.getMembers();
+      int count = 0;
+      final now = DateTime.now();
+      final todayName = DateFormat('EEEE').format(now);
+      for (final member in members) {
+        final schedules = await _gymService.getMemberWorkoutSchedules(member.id!);
+        for (final schedule in schedules) {
+          if (schedule.isActive && schedule.daysOfWeek.contains(todayName)) {
+            final start = DateTime(now.year, now.month, now.day, schedule.startTime.hour, schedule.startTime.minute);
+            final end = DateTime(now.year, now.month, now.day, schedule.endTime.hour, schedule.endTime.minute);
+            if (now.isAfter(start) && now.isBefore(end)) {
+              count++;
+              break; // Only count each member once
+            }
+          }
+        }
+      }
+      setState(() {
+        _gymCapacityCount = count;
+        _gymCapacityPercent = (_maxCapacity > 0) ? (count / _maxCapacity).clamp(0, 1) : 0.0;
+      });
+    } catch (e) {
+      setState(() {
+        _gymCapacityCount = 0;
+        _gymCapacityPercent = 0.0;
       });
     }
   }
@@ -105,52 +205,56 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Color(0xFF240006),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Progress row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              child: _loadingProgress
+                  ? Center(child: CircularProgressIndicator(color: Colors.yellow))
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Progress row
+                        Row(
                           children: [
-                            Text("Today's Progress", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                            SizedBox(height: 4),
-                            Text("5 of 7 daily goals completed", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Today's Progress", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                  SizedBox(height: 4),
+                                  Text("$_todayCompleted of $_todayGoal daily goals completed", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                                  SizedBox(height: 4),
+                                  Text("Points earned today: $_todayPoints", style: TextStyle(color: Colors.yellow[700], fontSize: 14, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 54,
+                                  height: 54,
+                                  child: CircularProgressIndicator(
+                                    value: _todayPercent,
+                                    strokeWidth: 6,
+                                    backgroundColor: Colors.white12,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFB71C1C)),
+                                  ),
+                                ),
+                                Text("${(_todayPercent * 100).round()}%", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                              ],
+                            ),
                           ],
                         ),
-                      ),
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            width: 54,
-                            height: 54,
-                            child: CircularProgressIndicator(
-                              value: 0.7,
-                              strokeWidth: 6,
-                              backgroundColor: Colors.white12,
-                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFB71C1C)),
-                            ),
-                          ),
-                          Text("70%", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 18),
-                  // Stats row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _progressStat(Icons.directions_walk, "Steps", "8,245 / 10,000"),
-                      _progressStat(Icons.local_fire_department, "Calories", "450 kcal"),
-                      _progressStat(Icons.access_time, "Active", "45 mins"),
-                    ],
-                  ),
-                ],
-              ),
+                        SizedBox(height: 18),
+                        // Stats row (optional, can be replaced with real stats if available)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _progressStat(Icons.directions_walk, "Steps", "${_todaySteps.toString()}"),
+                            _progressStat(Icons.local_fire_department, "Calories", "${_todayCalories.toString()} kcal"),
+                            _progressStat(Icons.access_time, "Active", "${_todayActiveMinutes.toString()} mins"),
+                          ],
+                        ),
+                      ],
+                    ),
             ),
             SizedBox(height: 18),
 
@@ -169,21 +273,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text("Gym Capacity", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                       Spacer(),
-                      Text("65%", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text("${(_gymCapacityPercent * 100).round()}%", style: TextStyle(color: _gymCapacityPercent < 0.8 ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
                     ],
                   ),
                   SizedBox(height: 10),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(6),
                     child: LinearProgressIndicator(
-                      value: 0.65,
+                      value: _gymCapacityPercent,
                       minHeight: 8,
                       backgroundColor: Colors.white12,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                      valueColor: AlwaysStoppedAnimation<Color>(_gymCapacityPercent < 0.8 ? Colors.green : Colors.red),
                     ),
                   ),
                   SizedBox(height: 8),
-                  Text("Best time to visit now", style: TextStyle(color: Colors.green, fontSize: 13)),
+                  Text(_gymCapacityPercent < 0.8 ? "Best time to visit now" : "Gym is busy now", style: TextStyle(color: _gymCapacityPercent < 0.8 ? Colors.green : Colors.red, fontSize: 13)),
+                  SizedBox(height: 4),
+                  Text("$_gymCapacityCount / $_maxCapacity members scheduled now", style: TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ),
@@ -192,9 +298,11 @@ class _HomeScreenState extends State<HomeScreen> {
             // Top Performers
             Text("This Week's Top Performers", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
             SizedBox(height: 12),
-            _topPerformer(1, "Ruwan Silva", "assets/images/img_png/user1.png", 3240),
-            _topPerformer(2, "Nuwan Thushara", "assets/images/img_png/user2.png", 2980),
-            _topPerformer(3, "Harsha Weerakoody", "assets/images/img_png/user3.png", 2540),
+            ..._leaderboard.asMap().entries.map((entry) {
+              final rank = entry.key + 1;
+              final user = entry.value;
+              return _topPerformer(rank, user['name'] ?? 'User', "assets/images/img_png/user$rank.png", user['points'] ?? 0);
+            }).toList(),
             SizedBox(height: 18),
 
             // 2x2 Grid of Action Buttons

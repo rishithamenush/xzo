@@ -374,6 +374,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 notes: notesController.text.trim(),
               );
               await _gymService.addWorkoutProgress(userId, schedule.id!, progress);
+              await _gymService.incrementUserPoints(userId, 10);
               if (mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
