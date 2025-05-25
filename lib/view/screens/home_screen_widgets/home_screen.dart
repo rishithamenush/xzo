@@ -743,6 +743,67 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           );
+        } else if (label == "Leaderboard") {
+          // Show leaderboard popup
+          await showDialog(
+            context: context,
+            builder: (context) => Dialog(
+              backgroundColor: const Color(0xFF240006),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(18.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Leaderboard',
+                      style: TextStyle(
+                        color: Colors.yellow[700],
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    SizedBox(
+                      height: 350,
+                      width: 320,
+                      child: _leaderboard.isEmpty
+                        ? Center(child: Text('No leaderboard data', style: TextStyle(color: Colors.white70)))
+                        : ListView.separated(
+                            itemCount: _leaderboard.length,
+                            separatorBuilder: (_, __) => Divider(color: Colors.white12, height: 1),
+                            itemBuilder: (context, index) {
+                              final user = _leaderboard[index];
+                              final rank = index + 1;
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: rank == 1 ? Colors.amber : rank == 2 ? Colors.grey : rank == 3 ? Colors.brown : Colors.white24,
+                                  child: Text('$rank', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                                ),
+                                title: Text(user['name'] ?? 'User', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                trailing: Text('${user['points'] ?? 0} pts', style: TextStyle(color: Colors.yellow[700], fontWeight: FontWeight.bold)),
+                              );
+                            },
+                          ),
+                    ),
+                    SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.yellow[700],
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: Text('Close', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
         }
       },
       style: ElevatedButton.styleFrom(
