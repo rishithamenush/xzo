@@ -7,6 +7,7 @@ import '../models/payment_model.dart';
 import '../models/attendance_model.dart';
 import '../models/announcement_model.dart';
 import '../models/workout_schedule_model.dart';
+import '../models/workout_progress_model.dart';
 import 'dart:developer';
 
 class GymService {
@@ -621,5 +622,68 @@ class GymService {
       log('Error updating workout schedule memberId: $e', error: e, stackTrace: stackTrace);
       rethrow;
     }
+  }
+
+  // Workout Progress
+  Future<void> addWorkoutProgress(String memberId, String scheduleId, WorkoutProgressModel progress) async {
+    // Find member document by id field
+    final memberQuery = await _firestore.collection('users').where('id', isEqualTo: memberId).get();
+    if (memberQuery.docs.isEmpty) throw Exception('Member with ID $memberId does not exist');
+    final memberDoc = memberQuery.docs.first;
+    // Add progress to subcollection
+    final doc = await _firestore
+      .collection('users')
+      .doc(memberDoc.id)
+      .collection('workout_schedules')
+      .doc(scheduleId)
+      .collection('progress')
+      .add(progress.toJson());
+    await doc.update({'id': doc.id});
+  }
+
+  Future<List<WorkoutProgressModel>> getWorkoutProgressList(String memberId, String scheduleId) async {
+    final memberQuery = await _firestore.collection('users').where('id', isEqualTo: memberId).get();
+    if (memberQuery.docs.isEmpty) throw Exception('Member with ID $memberId does not exist');
+    final memberDoc = memberQuery.docs.first;
+    final snapshot = await _firestore
+      .collection('users')
+      .doc(memberDoc.id)
+      .collection('workout_schedules')
+      .doc(scheduleId)
+      .collection('progress')
+      .get();
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      data['id'] = doc.id;
+      return WorkoutProgressModel.fromJson(data);
+    }).toList();
+  }
+
+  Future<void> updateWorkoutProgress(String memberId, String scheduleId, WorkoutProgressModel progress) async {
+    final memberQuery = await _firestore.collection('users').where('id', isEqualTo: memberId).get();
+    if (memberQuery.docs.isEmpty) throw Exception('Member with ID $memberId does not exist');
+    final memberDoc = memberQuery.docs.first;
+    await _firestore
+      .collection('users')
+      .doc(memberDoc.id)
+      .collection('workout_schedules')
+      .doc(scheduleId)
+      .collection('progress')
+      .doc(progress.id)
+      .update(progress.toJson());
+  }
+
+  Future<void> deleteWorkoutProgress(String memberId, String scheduleId, String progressId) async {
+    final memberQuery = await _firestore.collection('users').where('id', isEqualTo: memberId).get();
+    if (memberQuery.docs.isEmpty) throw Exception('Member with ID $memberId does not exist');
+    final memberDoc = memberQuery.docs.first;
+    await _firestore
+      .collection('users')
+      .doc(memberDoc.id)
+      .collection('workout_schedules')
+      .doc(scheduleId)
+      .collection('progress')
+      .doc(progressId)
+      .delete();
   }
 } 
